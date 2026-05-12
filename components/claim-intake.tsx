@@ -25,12 +25,23 @@ type CdrResult = {
 type ClaimRecordSummary = {
   id: string;
   createdAt: string;
+  updatedAt: string;
   createdBy: string | null;
+  status: ClaimStatus;
   customerComplaintPreview: string;
   workorderTime: string;
   claimableTime: number;
   warningsCount: number;
   keyPartNumber: string;
+};
+
+type ClaimStatus = "draft" | "needs_clarification" | "approved" | "copied";
+
+const statusLabels: Record<ClaimStatus, string> = {
+  draft: "Draft",
+  needs_clarification: "Needs clarification",
+  approved: "Approved",
+  copied: "Copied",
 };
 
 const emptyForm = {
@@ -117,6 +128,25 @@ export function ClaimIntake() {
 
     await navigator.clipboard.writeText(result.copyText);
     setCopyStatus("CDR copied to clipboard.");
+  }
+
+  async function updateRecordStatus(id: string, status: ClaimStatus) {
+    const response = await fetch("/api/claims", {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ id, status }),
+    });
+    const payload = await response.json();
+
+    if (!response.ok) {
+      setRecordsStatus(payload.error ?? "Unable to update claim status.");
+      return;
+    }
+
+    setRecords((current) => current.map((record) => (record.id === id ? payload.record : record)));
+    setRecordsStatus("Latest saved claim drafts");
   }
 
   return (
@@ -243,6 +273,21 @@ export function ClaimIntake() {
                       {formatDate(record.createdAt)} · key part {record.keyPartNumber || "blank"}
                     </span>
                   </div>
+                  <div className="approval-state">
+                    <span className={`approval-pill ${record.status}`}>{statusLabels[record.status]}</span>
+                    <div className="approval-actions">
+                      {(["draft", "needs_clarification", "approved", "copied"] as ClaimStatus[]).map((status) => (
+                        <button
+                          disabled={record.status === status}
+                          key={status}
+                          onClick={() => void updateRecordStatus(record.id, status)}
+                          type="button"
+                        >
+                          {statusLabels[status]}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
                   <div className="record-meta">
                     <span>{record.workorderTime} hr requested</span>
                     <span>{record.claimableTime.toFixed(1)} hr claimable</span>
@@ -327,14 +372,18 @@ export function ClaimIntake() {
 function toRecordSummary(record: {
   id: string;
   createdAt: string;
+  updatedAt?: string;
   createdBy: string | null;
+  status?: ClaimStatus;
   input: { customerComplaint: string; workorderTime: string };
   result: { claimableTime: number; warnings: string[]; keyPartNumber: string };
 }): ClaimRecordSummary {
   return {
     id: record.id,
     createdAt: record.createdAt,
+    updatedAt: record.updatedAt ?? record.createdAt,
     createdBy: record.createdBy,
+    status: record.status ?? "draft",
     customerComplaintPreview: preview(record.input.customerComplaint),
     workorderTime: record.input.workorderTime,
     claimableTime: record.result.claimableTime,

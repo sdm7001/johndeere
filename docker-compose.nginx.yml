@@ -7,8 +7,20 @@ services:
         NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL:-https://jd.texmg.com}
     env_file:
       - ./env/app.env
+    depends_on:
+      - db
     ports:
       - "127.0.0.1:3100:3000"
     volumes:
       - ${CLAIM_RECORDS_HOST_DIR:-./data/claim-records}:/app/data/claim-records
+    restart: unless-stopped
+
+  db:
+    image: postgres:latest
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-johndeere_warranty}
+      POSTGRES_USER: ${POSTGRES_USER:-johndeere_app}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - ${POSTGRES_HOST_DIR:-./data/postgres}:/var/lib/postgresql/data
     restart: unless-stopped

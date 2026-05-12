@@ -4,6 +4,7 @@ import { NextResponse } from "next/server";
 import { claimInputSchema, generateCdr } from "@/lib/cdr";
 import { saveClaimRecord } from "@/lib/claim-records";
 import { appConfig } from "@/lib/config";
+import { buildSourceNotes } from "@/lib/warranty-rules";
 
 export async function POST(request: Request) {
   let createdBy: string | null = null;
@@ -30,6 +31,7 @@ export async function POST(request: Request) {
   }
 
   const result = generateCdr(parsed.data);
+  result.sourceNotes = [...result.sourceNotes, ...(await buildSourceNotes(parsed.data, result))];
   const record = await saveClaimRecord(parsed.data, result, createdBy);
 
   return NextResponse.json({ result, record });

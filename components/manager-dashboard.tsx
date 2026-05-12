@@ -1,14 +1,14 @@
 const metricCards = [
   {
     label: "Draft queue",
-    value: "Session only",
-    detail: "Claim persistence is the next step for live counts.",
+    value: "Saved",
+    detail: "Generated drafts are retained in PostgreSQL-backed history.",
     tone: "green",
   },
   {
     label: "Reimbursement exposure",
-    value: "Pending DB",
-    detail: "Track dollars once claims are saved with labor totals.",
+    value: "Tracked next",
+    detail: "Claimable hours are saved now; dollar reporting comes next.",
     tone: "yellow",
   },
   {
@@ -46,7 +46,7 @@ const watchlist = [
 const sourceStatus = [
   "WAM and CDR transition guide registered",
   "Confidential source PDFs stored off public web root",
-  "MST and operation-code source registration still needed",
+  "MST and operation-code source placeholders registered; official references still needed",
   "Production Clerk certificates pending; development Clerk active for testing",
 ];
 
@@ -115,10 +115,10 @@ export function ManagerDashboard() {
             <h3>Best steps after MVP testing</h3>
           </div>
           <ol>
-            <li>Add PostgreSQL claim saving and manager claim history.</li>
-            <li>Index Obsidian warranty rules so generated drafts cite source notes.</li>
-            <li>Register MST and warranty operation-code sources.</li>
-            <li>Add approval states: draft, needs clarification, approved, copied.</li>
+            <li>Add dollar-value reimbursement reporting from saved claim history.</li>
+            <li>Attach official MST and operation-code source files.</li>
+            <li>Turn Obsidian source citations into clickable in-app references.</li>
+            <li>Add manager filters by approval state, user, warning count, and date.</li>
           </ol>
         </div>
       </div>

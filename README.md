@@ -19,6 +19,13 @@ The planning source of truth lives in the Obsidian-compatible Markdown vault at 
   - warnings for missing time and non-claimable activities
   - workorder-time reconciliation against claimable CDR time
 - Persistent claim draft records for future reference.
+- PostgreSQL-backed claim history when `DATABASE_URL` is configured.
+- Approval states for saved claims:
+  - draft
+  - needs clarification
+  - approved
+  - copied
+- Obsidian warranty rule citations in generated draft source notes.
 - Docker Compose and Caddy configuration for `jd.texmg.com`.
 
 ## Local development
@@ -36,7 +43,12 @@ Set Clerk keys in `.env.local` to enable authentication locally. Without Clerk k
 1. Point DNS `A` record for `jd.texmg.com` to the droplet.
 2. Copy `env/app.env.example` to `env/app.env` on the droplet.
 3. Add production Clerk keys and URLs to `env/app.env`.
-4. Set `CLAIM_RECORDS_HOST_DIR=/opt/johndeere-app/data/claim-records` on the VPS for durable claim history.
+4. Set PostgreSQL and storage values in `env/app.env`:
+   - `POSTGRES_PASSWORD`
+   - `DATABASE_URL`
+   - `POSTGRES_HOST_DIR=/opt/johndeere-app/data/postgres`
+   - `CLAIM_RECORDS_HOST_DIR=/opt/johndeere-app/data/claim-records`
+   - `WARRANTY_VAULT_DIR=vault`
 5. Run:
 
 ```bash
