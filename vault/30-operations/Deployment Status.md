@@ -24,6 +24,10 @@ status: active
 - Certbot issued a Let's Encrypt certificate for `jd.texmg.com`.
 - `https://jd.texmg.com` returns a Clerk authentication redirect for signed-out users.
 - `https://jd.texmg.com/sign-in` returns the app sign-in route.
+- Clerk DNS CNAME records were added for `clerk.texmg.com`, `accounts.texmg.com`, `clkmail.texmg.com`, `clk._domainkey.texmg.com`, and `clk2._domainkey.texmg.com`.
+- Public DNS resolvers show the Clerk CNAME records.
+- Clerk TLS for `clerk.texmg.com` and `accounts.texmg.com` is still pending certificate activation on Clerk's side.
+- The app sign-in page now shows a visible sign-in shell and guidance while the Clerk embedded form loads.
 
 ## Deployment approach
 
