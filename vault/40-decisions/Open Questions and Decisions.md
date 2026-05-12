@@ -12,12 +12,25 @@ Use this note to turn uncertainty into explicit decisions. Each answer should ei
 
 ## Product questions
 
-- Who is the first primary user?
-- What is the first workflow the app must support?
+- Confirm the first primary user: warranty administrator, service manager, or technician?
+- Confirm the first workflow scope: CDR drafting only, or CDR drafting plus coverage validation?
 - Is this app internal, customer-facing, or public?
 - Does the app need John Deere Operations Center API integration, or will manual entry/imports work first?
 - What data is sensitive, regulated, confidential, or customer-owned?
 - What reports or decisions must the app improve?
+- Should the app store finalized claim drafts, or only generate copy-ready output?
+- Should the app support Special Allowance or D-Policy review workflows in version 1?
+
+## Warranty source questions
+
+- Where will the uploaded Warranty Administration Manual be stored?
+- What version or effective date of the WAM should be treated as current?
+- Is the CDR Format Transition Guide available as a PDF, Markdown note, or structured source?
+- How will official Deere MST or flat-rate guides be accessed?
+- How will valid warranty operation codes be verified?
+- Can Service Advisor evidence be exported and attached to claim records?
+- Who approves updates to authorized-source notes before the app uses them for coverage decisions?
+- What should the app do when a source conflict exists between WAM, MST, Service Advisor, and operation-code references?
 
 ## Obsidian questions
 
@@ -60,3 +73,13 @@ Use this note to turn uncertainty into explicit decisions. Each answer should ei
 
 - Status: proposed
 - Rationale: A single VPS can run the initial app, database, proxy, and worker with manageable operational complexity.
+
+### Decision: Make warranty CDR processing the first workflow
+
+- Status: proposed
+- Rationale: The warranty processing SOP defines a concrete dealership workflow with clear inputs, source constraints, output format, and validation rules.
+
+### Decision: Require authorized-source citations for coverage decisions
+
+- Status: proposed
+- Rationale: Warranty reimbursement depends on audit-ready claims. The app must not invent WAM citations, MST times, operation codes, or coverage determinations from unofficial sources.

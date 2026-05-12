@@ -7,7 +7,7 @@ The planning source of truth lives in the Obsidian-compatible Markdown vault at 
 ## Vault layout
 
 - `vault/Home.md` - project index and next steps.
-- `vault/10-product/` - product brief, personas, workflows, and requirements.
+- `vault/10-product/` - product brief, warranty processing SOP, workflows, and requirements.
 - `vault/20-architecture/` - system architecture and the Obsidian data-brain design.
 - `vault/30-operations/` - VPS deployment, backups, monitoring, and security runbooks.
 - `vault/40-decisions/` - open questions, risks, and decision records.

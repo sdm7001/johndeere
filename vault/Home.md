@@ -14,6 +14,7 @@ This vault is the planning brain for a new John Deere-focused web application ho
 ## Core planning notes
 
 - [[10-product/Product Brief|Product Brief]]
+- [[10-product/Warranty Processing SOP|Warranty Processing SOP]]
 - [[20-architecture/System Architecture|System Architecture]]
 - [[20-architecture/Obsidian Data Brain|Obsidian Data Brain]]
 - [[30-operations/DigitalOcean Deployment Runbook|DigitalOcean Deployment Runbook]]
@@ -25,11 +26,13 @@ This vault is the planning brain for a new John Deere-focused web application ho
 - The VPS droplet is already provisioned and reachable.
 - Obsidian is used as the human-editable knowledge layer behind the app, not as the only transactional datastore.
 - If official John Deere data is required, the app should use approved APIs and credentials rather than scraping or unmanaged exports.
+- The first defined workflow is dealer-grade warranty CDR claim processing, documented in [[10-product/Warranty Processing SOP|Warranty Processing SOP]].
 
 ## Recommended next steps
 
-1. Confirm the first user role and the first business workflow in [[10-product/Product Brief|Product Brief]].
-2. Decide whether Obsidian is the canonical data source, a content-management layer, or a documentation/knowledge layer in [[20-architecture/Obsidian Data Brain|Obsidian Data Brain]].
-3. Select the initial runtime stack and persistence layer in [[20-architecture/System Architecture|System Architecture]].
-4. Prepare the droplet using the checklist in [[30-operations/DigitalOcean Deployment Runbook|DigitalOcean Deployment Runbook]].
-5. Convert unresolved items into explicit decisions in [[40-decisions/Open Questions and Decisions|Open Questions and Decisions]].
+1. Upload or reference the authorized WAM, CDR transition guide, MST/flat-rate source, and warranty operation code source needed by [[10-product/Warranty Processing SOP|Warranty Processing SOP]].
+2. Confirm the first user role and warranty workflow boundaries in [[10-product/Product Brief|Product Brief]].
+3. Decide whether Obsidian is the canonical data source, a content-management layer, or a documentation/knowledge layer in [[20-architecture/Obsidian Data Brain|Obsidian Data Brain]].
+4. Select the initial runtime stack and persistence layer in [[20-architecture/System Architecture|System Architecture]].
+5. Prepare the droplet using the checklist in [[30-operations/DigitalOcean Deployment Runbook|DigitalOcean Deployment Runbook]].
+6. Convert unresolved items into explicit decisions in [[40-decisions/Open Questions and Decisions|Open Questions and Decisions]].

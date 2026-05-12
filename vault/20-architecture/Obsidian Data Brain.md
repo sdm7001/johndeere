@@ -13,6 +13,8 @@ status: draft
 
 Obsidian should act as the human-editable knowledge brain behind the app. It is best used for context-rich data that benefits from links, history, and narrative:
 
+- Warranty SOPs, CDR formatting rules, and internal claim handling procedures.
+- Uploaded or summarized authorized-source references such as WAM sections, CDR transition guidance, and operation-code notes.
 - Equipment notes and relationships.
 - Service procedures and troubleshooting.
 - Customer/account context.
@@ -80,9 +82,36 @@ Steps, safety notes, parts, and links.
 | `account` | Customer, farm, dealer, or organization context | Yes for CRM-like workflows |
 | `person` | Operators, technicians, contacts | Yes if permissions or tasks depend on people |
 | `event` | Service, repair, inspection, operation, communication | Yes for reporting and audit history |
+| `warranty_source` | Authorized WAM, CDR, MST, Service Advisor, or operation-code reference | Indexed from Obsidian with source metadata |
+| `claim_template` | Reusable CDR prompt or claim formatting rule | Indexed from Obsidian |
 | `procedure` | Maintenance and troubleshooting knowledge | Indexed from Obsidian |
 | `definition` | Business terms, field mappings, report meanings | Indexed from Obsidian |
 | `decision` | Product and operational decisions | Obsidian only unless shown in app |
+
+## Warranty source metadata
+
+Warranty-related notes should identify source type and authority so the app can distinguish authorized references from general knowledge.
+
+```markdown
+---
+type: warranty_source
+source_type: wam
+section: "110.14"
+title: Diagnostic Labor
+authority: authorized
+effective_date: TBD
+tags:
+  - warranty
+  - diagnostic-labor
+---
+```
+
+Rules:
+
+- Coverage determinations must cite an authorized source.
+- If a source note lacks section, source type, or authority metadata, the app should not use it for coverage decisions.
+- MST times and warranty operation codes should be stored with the source name, retrieval date, and applicable model or component scope.
+- Service Advisor outputs should be attached to a claim record or referenced as evidence, not treated as general policy.
 
 ## Indexing workflow
 
