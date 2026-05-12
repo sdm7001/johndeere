@@ -31,7 +31,7 @@ Secondary users to consider later:
 Selected first workflow:
 
 1. **Dealer-grade warranty CDR processor**
-   - Intake customer complaint and technician write-up.
+   - Intake original customer complaint, technician write-up, and the amount of workorder time the dealer is trying to collect.
    - Validate warranty coverage using authorized WAM, CDR transition guide, MST/flat-rate, Service Advisor, and warranty operation code sources.
    - Produce a compliant CDR claim in the required `Key part number`, `Cause`, `Diagnose`, `Repair`, and `Clean up` format.
    - Break down actual labor time per diagnostic, repair, and cleanup step.
@@ -68,7 +68,8 @@ Candidate later workflows:
 - Structured metadata through YAML frontmatter in vault notes.
 - Admin workflow to refresh/reindex the Obsidian vault.
 - Backups for both app database and Obsidian vault.
-- Warranty claim intake form for complaint, technician write-up, machine details, coverage type, and supporting evidence.
+- Warranty claim intake form with three primary paste boxes: original customer complaint, technician write-up, and workorder time to collect.
+- Secondary claim fields for machine details, coverage type, failed part details, and supporting evidence.
 - Authorized-source library for WAM, CDR transition guide, MST/flat-rate references, Service Advisor outputs, and warranty operation code references.
 - Claim drafting workflow that enforces the CDR structure in [[Warranty Processing SOP]].
 - Coverage decision workflow that stops non-covered claims and requires WAM section citations.
@@ -83,7 +84,7 @@ Candidate later workflows:
 - Documents: manuals, invoices, photos, attachments, external links.
 - Knowledge: troubleshooting, procedures, operating notes, definitions, decisions.
 - Warranty sources: WAM sections, CDR guide references, MST times, operation codes, Service Advisor evidence.
-- Claims: complaint, technician write-up, key part, cause, diagnostics, repair steps, cleanup eligibility, coverage decision, citations, and submission status.
+- Claims: complaint, technician write-up, workorder time to collect, key part, cause, diagnostics, repair steps, cleanup eligibility, coverage decision, citations, and submission status.
 
 ## Non-goals for the first version
 
@@ -96,8 +97,9 @@ Candidate later workflows:
 
 ## Success criteria
 
-- A warranty administrator can convert a complaint and technician write-up into a compliant CDR draft.
+- A warranty administrator can paste the original customer complaint, technician write-up, and workorder time into the app and receive a compliant CDR draft.
 - Covered claims include step-by-step diagnostic, repair, and eligible cleanup time.
+- The app flags differences between the workorder time requested and the claimable CDR labor breakdown.
 - Non-covered claims stop before CDR generation and cite the applicable WAM section.
 - Important warranty guidance can be edited in Obsidian without developer involvement.
 - The app can be redeployed on the droplet from Git with documented steps.

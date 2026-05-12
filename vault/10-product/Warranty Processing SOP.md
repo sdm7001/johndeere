@@ -22,11 +22,33 @@ Each claim requires:
 
 - Customer complaint or context.
 - Technician write-up or repair detail.
+- Amount of time spent on the workorder that the dealer is trying to collect.
 - Machine, model, serial number, hours, sale date, warranty plan, and repair date when available.
 - Failed or replaced part information when available.
 - Supporting diagnostics, codes, photos, test results, and Service Advisor notes when available.
 
 If information is missing or unclear, the app should ask targeted clarifying questions before making a coverage determination.
+
+## Claim intake screen
+
+The first version should keep the claim intake simple and paste-friendly. The primary screen should include three large boxes:
+
+1. **Original customer complaint**
+   - Multiline paste box.
+   - Captures the customer's stated symptom, concern, functional issue, or complaint.
+   - Used to preserve the complaint context and help identify whether the technician write-up addresses the reported issue.
+
+2. **Technician's write-up**
+   - Multiline paste box.
+   - Captures technician notes, diagnostic steps, test results, parts replaced, repair steps, verification, and cleanup notes.
+   - Used to extract Cause, Diagnose, Repair, and Clean up details for the CDR output.
+
+3. **Workorder time to collect**
+   - Numeric or structured paste box.
+   - Captures the amount of time on the workorder that the dealer is trying to collect for reimbursement.
+   - Used as the total labor target that must be reconciled against the step-by-step Diagnose, Repair, and eligible Clean up time.
+
+The app should not automatically assume all pasted workorder time is warrantable. It should compare the requested workorder time against the extracted CDR labor breakdown, WAM rules, MST/flat-rate guidance when available, and any non-claimable activities.
 
 ## Authorized sources only
 
@@ -71,6 +93,8 @@ Rules:
 ## Labor breakdown requirements
 
 Each Diagnose, Repair, and Clean up section must list actual time step-by-step.
+
+The sum of claimable Diagnose, Repair, and eligible Clean up time should be compared to the **Workorder time to collect** intake field. If the sum does not match, the app should flag the difference and ask the user to clarify which workorder time belongs to claimable warranty labor versus non-claimable activity.
 
 Example structure:
 
@@ -184,10 +208,12 @@ Use a prominent label when a covered repair is returned:
 
 ## App workflow
 
-1. Intake complaint and technician write-up.
-2. Extract machine, coverage, key part, symptom, cause, diagnostic steps, repair steps, cleanup, and evidence.
-3. Validate source availability.
-4. Check warranty eligibility against WAM.
-5. Confirm operation code and MST time from authorized Deere source when available.
-6. Produce covered CDR output or stop with non-covered explanation.
-7. Save the claim draft, source citations, labor breakdown, and unresolved questions.
+1. Intake original customer complaint, technician write-up, and workorder time to collect.
+2. Extract machine, coverage, key part, symptom, cause, diagnostic steps, repair steps, cleanup, claimed time, and evidence.
+3. Separate potentially claimable labor from non-claimable activity.
+4. Validate source availability.
+5. Check warranty eligibility against WAM.
+6. Confirm operation code and MST time from authorized Deere source when available.
+7. Reconcile the CDR labor breakdown against the workorder time to collect.
+8. Produce covered CDR output or stop with non-covered explanation.
+9. Save the claim draft, source citations, labor breakdown, requested workorder time, and unresolved questions.
