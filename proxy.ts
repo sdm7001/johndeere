@@ -7,6 +7,11 @@ const clerkIsConfigured = Boolean(
 );
 
 const protectedProxy = clerkMiddleware(async (auth, req) => {
+  const sanitizedAuthRedirect = sanitizeAuthRedirect(req);
+  if (sanitizedAuthRedirect) {
+    return sanitizedAuthRedirect;
+  }
+
   if (isProtectedRoute(req)) {
     const { userId } = await auth();
 
@@ -28,6 +33,30 @@ const protectedProxy = clerkMiddleware(async (auth, req) => {
   return NextResponse.next();
 });
 
+function sanitizeAuthRedirect(req: Request) {
+  const url = new URL(req.url);
+
+  if (!url.pathname.startsWith("/sign-in") && !url.pathname.startsWith("/sign-up")) {
+    return null;
+  }
+
+  const redirectUrl = url.searchParams.get("redirect_url");
+  if (!redirectUrl) {
+    return null;
+  }
+
+  const publicOrigin = getPublicOrigin(req);
+  const parsedRedirect = safeUrl(redirectUrl);
+  const parsedPublicOrigin = new URL(publicOrigin);
+
+  if (parsedRedirect?.host === parsedPublicOrigin.host) {
+    return null;
+  }
+
+  url.searchParams.set("redirect_url", `${publicOrigin}/`);
+  return NextResponse.redirect(url);
+}
+
 function getPublicOrigin(req: Request) {
   const forwardedHost = req.headers.get("x-forwarded-host") ?? req.headers.get("host");
   const forwardedProto = req.headers.get("x-forwarded-proto") ?? "https";
@@ -37,6 +66,14 @@ function getPublicOrigin(req: Request) {
   }
 
   return req.url;
+}
+
+function safeUrl(value: string) {
+  try {
+    return new URL(value);
+  } catch {
+    return null;
+  }
 }
 
 export default clerkIsConfigured

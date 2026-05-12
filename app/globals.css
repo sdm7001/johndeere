@@ -272,3 +272,26 @@ input:focus {
   color: var(--red);
   padding: 1rem;
 }
+
+.auth-main {
+  align-items: start;
+  display: grid;
+  justify-items: center;
+}
+
+.auth-card {
+  display: grid;
+  gap: 1.25rem;
+  max-width: 620px;
+  width: 100%;
+}
+
+.auth-card h1 {
+  margin-bottom: 0.5rem;
+}
+
+.auth-card p {
+  color: var(--muted);
+  line-height: 1.5;
+  margin: 0;
+}
