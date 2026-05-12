@@ -46,9 +46,10 @@ Use this note to turn uncertainty into explicit decisions. Each answer should ei
 - Preferred app framework and language?
 - PostgreSQL or SQLite for the first release?
 - Is a staging environment needed on the same droplet or a second droplet?
-- What domain name will point to the app?
-- How should emails, notifications, or reminders be sent?
+- Should `staging.jd.texmg.com` be created later for pre-production testing?
+- How should emails, notifications, or reminders be sent outside Clerk authentication emails?
 - What attachment storage is required for manuals, photos, PDFs, and invoices?
+- Which Clerk sign-up policy should be used: invite-only, admin-created users, or restricted self-service sign-up?
 
 ## Operations questions
 
@@ -94,3 +95,13 @@ Use this note to turn uncertainty into explicit decisions. Each answer should ei
 
 - Status: accepted
 - Rationale: The WAM is marked confidential. The local vault can contain the PDFs for Obsidian use, but Git ignores `vault/90-sources/files/*.pdf` until repository privacy and document-sharing rules are confirmed.
+
+### Decision: Use Clerk for authentication
+
+- Status: accepted
+- Rationale: Clerk will handle user identity, sessions, and sign-in flows. The app database will retain dealer-specific authorization, roles, and permissions.
+
+### Decision: Host production app at jd.texmg.com
+
+- Status: accepted
+- Rationale: The user selected `jd.texmg.com` as the production subdomain for the DigitalOcean-hosted app.

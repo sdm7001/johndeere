@@ -22,6 +22,8 @@ Caddy or Nginx reverse proxy with TLS
   v
 Web app container
   |
+  +--> Clerk hosted authentication
+  |
   +--> App database container or managed database
   |
   +--> Obsidian vault directory mounted read-only for the app
@@ -39,9 +41,17 @@ Web app container
 
 ### Backend API
 
-- Owns authentication, permissions, validation, imports, and write operations.
+- Verifies Clerk sessions and owns app-specific permissions, validation, imports, and write operations.
 - Reads the Obsidian index rather than parsing every Markdown file on each request.
 - Keeps transactional records in a database.
+
+### Authentication
+
+- Clerk is the selected authentication provider.
+- Configure Clerk for the production domain `jd.texmg.com`.
+- Store Clerk publishable and secret keys in the server environment, not in Git or Obsidian.
+- Use Clerk identity for login and session management; keep app-specific roles and permissions in the application database.
+- Restrict warranty administration features to approved dealer users or admins.
 
 ### Data persistence
 
@@ -65,7 +75,7 @@ The Obsidian vault stores knowledge, definitions, procedures, annotations, decis
 The final stack can change, but this is a practical baseline for a VPS:
 
 - Runtime: Node.js or Python, depending on the team's comfort.
-- Web framework: Next.js, Remix, Django, or FastAPI plus a frontend.
+- Web framework: Next.js or Remix if prioritizing the most direct Clerk integration; Django or FastAPI plus a frontend remain possible with Clerk session verification.
 - Database: PostgreSQL.
 - Reverse proxy and TLS: Caddy for automatic certificates, or Nginx plus Certbot.
 - Process/deployment: Docker Compose.
@@ -85,7 +95,7 @@ Keep integrations isolated behind importer modules so the app can start manually
 ## Security baseline
 
 - Use HTTPS only.
-- Require admin authentication and strong passwords.
+- Require Clerk authentication for all warranty claim and source-management areas.
 - Keep app secrets in environment variables, not in the vault.
 - Mount the vault read-only to the public app unless app-based editing is explicitly required.
 - Restrict SSH access to key-based login.

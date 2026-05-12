@@ -62,7 +62,7 @@ Candidate later workflows:
 
 ## Minimum app capabilities
 
-- Authentication for at least one admin user.
+- Clerk authentication for at least one admin user.
 - Searchable records for equipment, people/accounts, notes, and tasks.
 - Obsidian-backed knowledge pages rendered safely in the web app.
 - Structured metadata through YAML frontmatter in vault notes.
@@ -73,6 +73,7 @@ Candidate later workflows:
 - Claim drafting workflow that enforces the CDR structure in [[Warranty Processing SOP]].
 - Coverage decision workflow that stops non-covered claims and requires WAM section citations.
 - Source register that tracks confidential warranty documents, versions, checksums, and ingestion status in [[90-sources/Source Register|Source Register]].
+- Production access through `https://jd.texmg.com`.
 
 ## Data categories
 

@@ -1,6 +1,6 @@
 # John Deere App Planning Vault
 
-This repository is currently a planning workspace for a new John Deere-focused app intended to run on a DigitalOcean VPS droplet.
+This repository is currently a planning workspace for a new John Deere-focused app intended to run on a DigitalOcean VPS droplet at `jd.texmg.com` with Clerk authentication.
 
 The planning source of truth lives in the Obsidian-compatible Markdown vault at [`vault/Home.md`](vault/Home.md). Open the `vault/` folder as an Obsidian vault to use backlinks, graph view, and linked notes while the product and technical plan evolves.
 

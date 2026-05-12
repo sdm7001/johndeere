@@ -12,7 +12,7 @@ status: draft
 ## Droplet assumptions
 
 - Ubuntu-based VPS droplet is already provisioned.
-- DNS can point an app domain or subdomain to the droplet.
+- DNS for `jd.texmg.com` can point to the droplet.
 - SSH key access is working.
 - The repository can be cloned or deployed to the droplet.
 
@@ -29,6 +29,14 @@ status: draft
 - Configure log rotation.
 - Set server timezone intentionally.
 - Verify enough disk space for database, vault, logs, and backups.
+
+## DNS and TLS
+
+- Create or update an `A` record for `jd.texmg.com` pointing to the droplet public IPv4 address.
+- Create an `AAAA` record only if IPv6 is configured and reachable on the droplet.
+- Configure the reverse proxy for `jd.texmg.com`.
+- Use HTTPS only. Caddy can issue and renew certificates automatically; Nginx should use Certbot or an equivalent ACME client.
+- Confirm `https://jd.texmg.com` returns the app health page before enabling real warranty data.
 
 ## Recommended deployment layout
 
@@ -48,6 +56,33 @@ The app should not store secrets in the Git repo or Obsidian vault. Use environm
 
 Confidential warranty source PDFs, including the WAM, should live in a server-side source directory such as `/opt/johndeere-app/data/warranty-sources/`. Do not serve this directory as public static content.
 
+## Clerk configuration
+
+Clerk is the selected authentication provider.
+
+Server environment should include the final variable names required by the chosen framework, such as:
+
+- `CLERK_PUBLISHABLE_KEY`
+- `CLERK_SECRET_KEY`
+- `CLERK_SIGN_IN_URL`
+- `CLERK_SIGN_UP_URL`
+- `CLERK_AFTER_SIGN_IN_URL`
+- `CLERK_AFTER_SIGN_UP_URL`
+
+Recommended URL values:
+
+- Sign in URL: `https://jd.texmg.com/sign-in`
+- Sign up URL: `https://jd.texmg.com/sign-up`
+- Post sign-in URL: `https://jd.texmg.com/`
+- Post sign-up URL: `https://jd.texmg.com/`
+
+Clerk dashboard setup:
+
+- Add `jd.texmg.com` as the production application domain.
+- Configure allowed redirect URLs for the sign-in, sign-up, and post-auth routes.
+- Disable public sign-up unless the dealership wants self-service account creation.
+- Use Clerk for identity and sessions; store app-specific dealer roles in the app database.
+
 ## Docker Compose services
 
 Initial service set:
@@ -63,10 +98,11 @@ Initial service set:
 2. SSH into the droplet as the deploy user.
 3. Pull the latest code.
 4. Update environment variables if needed.
-5. Run database migrations.
-6. Restart containers with Docker Compose.
-7. Run a health check.
-8. Trigger or verify Obsidian vault indexing.
+5. Confirm Clerk production keys and `jd.texmg.com` redirect URLs.
+6. Run database migrations.
+7. Restart containers with Docker Compose.
+8. Run a health check at `https://jd.texmg.com`.
+9. Trigger or verify Obsidian vault indexing.
 
 ## Vault sync options
 
@@ -111,6 +147,7 @@ Minimum schedule:
 ## Monitoring and maintenance
 
 - Uptime check for the public app URL.
+- Uptime check target: `https://jd.texmg.com`.
 - Disk usage alert.
 - Container restart policy.
 - Basic error logging with retention.
@@ -122,7 +159,8 @@ Minimum schedule:
 Before using real customer or operational data, confirm:
 
 - Authentication is enabled.
-- HTTPS is active.
+- Clerk authentication is enabled for warranty claim and source-management areas.
+- HTTPS is active on `jd.texmg.com`.
 - Backups are running and restorable.
 - Secrets are not in Git or Obsidian.
 - The vault indexer rejects invalid or unsafe Markdown.
