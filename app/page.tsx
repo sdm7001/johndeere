@@ -2,6 +2,7 @@ import { SignInButton, UserButton } from "@clerk/nextjs";
 import { currentUser } from "@clerk/nextjs/server";
 
 import { ClaimIntake } from "@/components/claim-intake";
+import { ManagerDashboard } from "@/components/manager-dashboard";
 import { appConfig } from "@/lib/config";
 
 export const dynamic = "force-dynamic";
@@ -47,6 +48,7 @@ export default async function HomePage() {
                 before submission.
               </p>
             </section>
+            <ManagerDashboard />
             <ClaimIntake />
           </>
         )}
