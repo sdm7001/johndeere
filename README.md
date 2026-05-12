@@ -41,7 +41,7 @@ Set Clerk keys in `.env.local` to enable authentication locally. Without Clerk k
 docker compose up -d --build
 ```
 
-If the VPS already has Nginx listening on ports 80 and 443, use the Nginx-friendly compose file instead and add an Nginx server block that proxies to `127.0.0.1:3000`:
+If the VPS already has Nginx listening on ports 80 and 443, use the Nginx-friendly compose file instead and add an Nginx server block that proxies to `127.0.0.1:3100`:
 
 ```bash
 docker compose -f docker-compose.nginx.yml up -d --build

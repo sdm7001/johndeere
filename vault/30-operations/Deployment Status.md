@@ -19,6 +19,6 @@ status: active
 
 ## Deployment approach
 
-- Deploy the app container on `127.0.0.1:3000`.
+- Deploy the app container on `127.0.0.1:3100` because another Next.js service is already using port 3000.
 - Add an Nginx server block for `jd.texmg.com` that proxies to the local app container.
 - Use Certbot with the existing Nginx installation for HTTPS.
