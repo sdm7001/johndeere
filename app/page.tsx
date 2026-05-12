@@ -1,4 +1,4 @@
-import { SignInButton, UserButton } from "@clerk/nextjs";
+import { SignInButton, SignOutButton, UserButton } from "@clerk/nextjs";
 import { currentUser } from "@clerk/nextjs/server";
 
 import { ClaimIntake } from "@/components/claim-intake";
@@ -17,7 +17,16 @@ export default async function HomePage() {
           <strong>John Deere Warranty CDR</strong>
           <span>{appConfig.productionUrl}</span>
         </div>
-        {appConfig.clerkIsConfigured ? <UserButton /> : null}
+        {appConfig.clerkIsConfigured && user ? (
+          <div className="topbar-actions">
+            <SignOutButton redirectUrl="/sign-in">
+              <button className="logout-button" type="button">
+                Log out
+              </button>
+            </SignOutButton>
+            <UserButton />
+          </div>
+        ) : null}
       </header>
 
       <main className="main">
