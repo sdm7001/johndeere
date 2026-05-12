@@ -14,13 +14,11 @@ status: active
 - `jd.texmg.com` DNS A record was created through WHM.
 - `jd.texmg.com` resolves to `104.248.126.60`.
 - VPS SSH on port 22 is reachable.
-- Deployment is blocked because SSH password authentication for the provided VPS credentials is rejected for both `root` and `ubuntu`.
+- SSH key access as `root` is working.
+- The VPS already has Nginx listening on ports 80 and 443.
 
-## Next action needed
+## Deployment approach
 
-Provide one of the following so deployment can continue:
-
-- Correct SSH password for the droplet user.
-- SSH private key for a user with sudo/root access.
-- Add the deployment public key from this environment to the droplet's authorized keys.
-- Temporary DigitalOcean console access to reset SSH credentials.
+- Deploy the app container on `127.0.0.1:3000`.
+- Add an Nginx server block for `jd.texmg.com` that proxies to the local app container.
+- Use Certbot with the existing Nginx installation for HTTPS.
