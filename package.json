@@ -1,0 +1,36 @@
+{
+  "name": "johndeere-warranty-mvp",
+  "version": "1.0.0",
+  "description": "This repository is currently a planning workspace for a new John Deere-focused app intended to run on a DigitalOcean VPS droplet at `jd.texmg.com` with Clerk authentication.",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "typecheck": "tsc --noEmit"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sdm7001/johndeere.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/sdm7001/johndeere/issues"
+  },
+  "homepage": "https://github.com/sdm7001/johndeere#readme",
+  "dependencies": {
+    "@clerk/nextjs": "^7.3.3",
+    "next": "^16.2.6",
+    "react": "^19.2.6",
+    "react-dom": "^19.2.6",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@types/node": "^25.7.0",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "typescript": "^6.0.3"
+  }
+}

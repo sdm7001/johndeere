@@ -1,0 +1,7 @@
+node_modules
+.next
+.git
+.env
+.env*.local
+vault/90-sources/files
+npm-debug.log*

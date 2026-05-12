@@ -1,0 +1,26 @@
+services:
+  app:
+    build:
+      context: .
+    env_file:
+      - ./env/app.env
+    restart: unless-stopped
+    expose:
+      - "3000"
+
+  proxy:
+    image: caddy:2-alpine
+    depends_on:
+      - app
+    ports:
+      - "80:80"
+      - "443:443"
+    restart: unless-stopped
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+
+volumes:
+  caddy_data:
+  caddy_config:
