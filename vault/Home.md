@@ -18,6 +18,7 @@ This vault is the planning brain for a new John Deere-focused web application ho
 - [[20-architecture/System Architecture|System Architecture]]
 - [[20-architecture/Obsidian Data Brain|Obsidian Data Brain]]
 - [[30-operations/DigitalOcean Deployment Runbook|DigitalOcean Deployment Runbook]]
+- [[30-operations/Deployment Status|Deployment Status]]
 - [[40-decisions/Open Questions and Decisions|Open Questions and Decisions]]
 - [[90-sources/Source Register|Source Register]]
 

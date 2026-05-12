@@ -5,6 +5,7 @@ dist/
 .env
 .env*.local
 env/*.env
+.deploy/
 npm-debug.log*
 tsconfig.tsbuildinfo
 vault/90-sources/files/*.pdf
