@@ -2,14 +2,18 @@ import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 
 import { claimInputSchema, generateCdr } from "@/lib/cdr";
+import { saveClaimRecord } from "@/lib/claim-records";
 import { appConfig } from "@/lib/config";
 
 export async function POST(request: Request) {
+  let createdBy: string | null = null;
+
   if (appConfig.clerkIsConfigured) {
     const { userId } = await auth();
     if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
+    createdBy = userId;
   }
 
   const json = await request.json().catch(() => null);
@@ -25,5 +29,8 @@ export async function POST(request: Request) {
     );
   }
 
-  return NextResponse.json({ result: generateCdr(parsed.data) });
+  const result = generateCdr(parsed.data);
+  const record = await saveClaimRecord(parsed.data, result, createdBy);
+
+  return NextResponse.json({ result, record });
 }

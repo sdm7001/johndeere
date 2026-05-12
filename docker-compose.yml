@@ -7,6 +7,8 @@ services:
         NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL:-https://jd.texmg.com}
     env_file:
       - ./env/app.env
+    volumes:
+      - ${CLAIM_RECORDS_HOST_DIR:-./data/claim-records}:/app/data/claim-records
     restart: unless-stopped
     expose:
       - "3000"

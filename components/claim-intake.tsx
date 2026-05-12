@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 type CdrStep = {
   description: string;
@@ -22,6 +22,17 @@ type CdrResult = {
   copyText: string;
 };
 
+type ClaimRecordSummary = {
+  id: string;
+  createdAt: string;
+  createdBy: string | null;
+  customerComplaintPreview: string;
+  workorderTime: string;
+  claimableTime: number;
+  warningsCount: number;
+  keyPartNumber: string;
+};
+
 const emptyForm = {
   customerComplaint: "",
   technicianWriteup: "",
@@ -34,6 +45,8 @@ export function ClaimIntake() {
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [copyStatus, setCopyStatus] = useState<string | null>(null);
+  const [records, setRecords] = useState<ClaimRecordSummary[]>([]);
+  const [recordsStatus, setRecordsStatus] = useState("Loading record history...");
   const completedFields = [
     Boolean(form.customerComplaint.trim()),
     Boolean(form.technicianWriteup.trim()),
@@ -44,6 +57,26 @@ export function ClaimIntake() {
     () => form.customerComplaint.trim() && form.technicianWriteup.trim() && form.workorderTime.trim(),
     [form],
   );
+
+  useEffect(() => {
+    void loadRecords();
+  }, []);
+
+  async function loadRecords() {
+    try {
+      const response = await fetch("/api/claims", { cache: "no-store" });
+      const payload = await response.json();
+
+      if (!response.ok) {
+        throw new Error(payload.error ?? "Unable to load records.");
+      }
+
+      setRecords(payload.records);
+      setRecordsStatus(payload.records.length ? "Latest saved claim drafts" : "No saved claim drafts yet");
+    } catch (caught) {
+      setRecordsStatus(caught instanceof Error ? caught.message : "Unable to load records.");
+    }
+  }
 
   async function submitClaim() {
     setError(null);
@@ -66,6 +99,12 @@ export function ClaimIntake() {
       }
 
       setResult(payload.result);
+      if (payload.record) {
+        setRecords((current) => [toRecordSummary(payload.record), ...current].slice(0, 25));
+        setRecordsStatus("Latest saved claim drafts");
+      } else {
+        await loadRecords();
+      }
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : "Unable to generate CDR draft.");
     } finally {
@@ -185,6 +224,37 @@ export function ClaimIntake() {
             {error ? <span className="status error-status">{error}</span> : <span className="status">WAM guardrails enabled</span>}
           </div>
         </div>
+
+        <div className="record-history-panel">
+          <div className="record-history-header">
+            <div>
+              <span className="section-kicker">Saved records</span>
+              <h3>Claim draft history</h3>
+            </div>
+            <span>{records.length} saved</span>
+          </div>
+          {records.length ? (
+            <div className="record-list">
+              {records.slice(0, 6).map((record) => (
+                <article className="record-row" key={record.id}>
+                  <div>
+                    <strong>{record.customerComplaintPreview || "No complaint preview"}</strong>
+                    <span>
+                      {formatDate(record.createdAt)} · key part {record.keyPartNumber || "blank"}
+                    </span>
+                  </div>
+                  <div className="record-meta">
+                    <span>{record.workorderTime} hr requested</span>
+                    <span>{record.claimableTime.toFixed(1)} hr claimable</span>
+                    <span>{record.warningsCount} warnings</span>
+                  </div>
+                </article>
+              ))}
+            </div>
+          ) : (
+            <p className="record-empty">{recordsStatus}</p>
+          )}
+        </div>
       </section>
 
       <section className="card result claim-result-card">
@@ -252,6 +322,37 @@ export function ClaimIntake() {
       </section>
     </div>
   );
+}
+
+function toRecordSummary(record: {
+  id: string;
+  createdAt: string;
+  createdBy: string | null;
+  input: { customerComplaint: string; workorderTime: string };
+  result: { claimableTime: number; warnings: string[]; keyPartNumber: string };
+}): ClaimRecordSummary {
+  return {
+    id: record.id,
+    createdAt: record.createdAt,
+    createdBy: record.createdBy,
+    customerComplaintPreview: preview(record.input.customerComplaint),
+    workorderTime: record.input.workorderTime,
+    claimableTime: record.result.claimableTime,
+    warningsCount: record.result.warnings.length,
+    keyPartNumber: record.result.keyPartNumber,
+  };
+}
+
+function preview(value: string) {
+  const normalized = value.replace(/\s+/g, " ").trim();
+  return normalized.length > 96 ? `${normalized.slice(0, 96)}...` : normalized;
+}
+
+function formatDate(value: string) {
+  return new Intl.DateTimeFormat(undefined, {
+    dateStyle: "short",
+    timeStyle: "short",
+  }).format(new Date(value));
 }
 
 function formatHours(value: number | null) {

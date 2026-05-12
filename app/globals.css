@@ -625,6 +625,82 @@ textarea::placeholder {
   padding: 0.75rem;
 }
 
+.record-history-panel {
+  background: #f7faf4;
+  border: 1px solid var(--border);
+  border-radius: 22px;
+  margin-top: 1rem;
+  padding: 1rem;
+}
+
+.record-history-header {
+  align-items: center;
+  display: flex;
+  gap: 1rem;
+  justify-content: space-between;
+  margin-bottom: 0.85rem;
+}
+
+.record-history-header h3 {
+  font-size: 1.2rem;
+  letter-spacing: -0.03em;
+  margin: 0.2rem 0 0;
+}
+
+.record-history-header > span {
+  background: #172112;
+  border-radius: 999px;
+  color: var(--yellow);
+  flex: 0 0 auto;
+  font-size: 0.8rem;
+  font-weight: 900;
+  padding: 0.45rem 0.7rem;
+}
+
+.record-list {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.record-row {
+  background: white;
+  border: 1px solid rgb(54 124 43 / 0.13);
+  border-radius: 18px;
+  display: grid;
+  gap: 0.7rem;
+  padding: 0.85rem;
+}
+
+.record-row strong {
+  display: block;
+  line-height: 1.35;
+  margin-bottom: 0.25rem;
+}
+
+.record-row span,
+.record-empty {
+  color: var(--muted);
+  font-size: 0.86rem;
+}
+
+.record-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.record-meta span {
+  background: #eef3e8;
+  border-radius: 999px;
+  color: var(--green-dark);
+  font-weight: 800;
+  padding: 0.35rem 0.55rem;
+}
+
+.record-empty {
+  margin: 0;
+}
+
 .status {
   color: var(--muted);
   font-size: 0.9rem;

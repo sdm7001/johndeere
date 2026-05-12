@@ -18,6 +18,7 @@ The planning source of truth lives in the Obsidian-compatible Markdown vault at 
   - cleanup guardrails
   - warnings for missing time and non-claimable activities
   - workorder-time reconciliation against claimable CDR time
+- Persistent claim draft records for future reference.
 - Docker Compose and Caddy configuration for `jd.texmg.com`.
 
 ## Local development
@@ -35,7 +36,8 @@ Set Clerk keys in `.env.local` to enable authentication locally. Without Clerk k
 1. Point DNS `A` record for `jd.texmg.com` to the droplet.
 2. Copy `env/app.env.example` to `env/app.env` on the droplet.
 3. Add production Clerk keys and URLs to `env/app.env`.
-4. Run:
+4. Set `CLAIM_RECORDS_HOST_DIR=/opt/johndeere-app/data/claim-records` on the VPS for durable claim history.
+5. Run:
 
 ```bash
 docker compose up -d --build

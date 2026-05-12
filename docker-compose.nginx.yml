@@ -9,4 +9,6 @@ services:
       - ./env/app.env
     ports:
       - "127.0.0.1:3100:3000"
+    volumes:
+      - ${CLAIM_RECORDS_HOST_DIR:-./data/claim-records}:/app/data/claim-records
     restart: unless-stopped
