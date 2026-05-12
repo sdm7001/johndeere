@@ -7,8 +7,14 @@ type CdrStep = {
   timeHours: number | null;
 };
 
+type CoverageLabel =
+  | "BASIC WARRANTY"
+  | "EMISSIONS WARRANTY"
+  | "POWERGARD COMPREHENSIVE"
+  | "EXTENDED WARRANTY";
+
 type CdrResult = {
-  coverageLabel: "BASIC WARRANTY";
+  coverageLabel: CoverageLabel;
   keyPartNumber: string;
   cause: string;
   diagnose: CdrStep[];
@@ -42,6 +48,13 @@ const statusLabels: Record<ClaimStatus, string> = {
   needs_clarification: "Needs clarification",
   approved: "Approved",
   copied: "Copied",
+};
+
+const coverageEmoji: Record<CoverageLabel, string> = {
+  "BASIC WARRANTY": "🟩",
+  "EMISSIONS WARRANTY": "🟦",
+  "POWERGARD COMPREHENSIVE": "🟨",
+  "EXTENDED WARRANTY": "🟥",
 };
 
 const emptyForm = {
@@ -312,7 +325,9 @@ export function ClaimIntake() {
         </div>
         {result ? (
           <>
-            <div className="coverage">🟩 {result.coverageLabel}</div>
+            <div className="coverage">
+              {coverageEmoji[result.coverageLabel]} {result.coverageLabel}
+            </div>
             <pre className="cdr-output">{result.copyText}</pre>
             <div className="actions result-actions">
               <button className="button secondary" type="button" onClick={copyCdr}>

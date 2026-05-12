@@ -1,6 +1,7 @@
 import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 
+import { refineCdrWithAnthropic } from "@/lib/anthropic-cdr";
 import { claimInputSchema, generateCdr } from "@/lib/cdr";
 import { saveClaimRecord } from "@/lib/claim-records";
 import { appConfig } from "@/lib/config";
@@ -30,7 +31,8 @@ export async function POST(request: Request) {
     );
   }
 
-  const result = generateCdr(parsed.data);
+  let result = generateCdr(parsed.data);
+  result = await refineCdrWithAnthropic(parsed.data, result);
   result.sourceNotes = [...result.sourceNotes, ...(await buildSourceNotes(parsed.data, result))];
   const record = await saveClaimRecord(parsed.data, result, createdBy);
 

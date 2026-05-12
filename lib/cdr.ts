@@ -8,13 +8,19 @@ export const claimInputSchema = z.object({
 
 export type ClaimInput = z.infer<typeof claimInputSchema>;
 
+export type CoverageLabel =
+  | "BASIC WARRANTY"
+  | "EMISSIONS WARRANTY"
+  | "POWERGARD COMPREHENSIVE"
+  | "EXTENDED WARRANTY";
+
 export type CdrStep = {
   description: string;
   timeHours: number | null;
 };
 
 export type CdrResult = {
-  coverageLabel: "BASIC WARRANTY";
+  coverageLabel: CoverageLabel;
   keyPartNumber: string;
   cause: string;
   diagnose: CdrStep[];
@@ -113,6 +119,8 @@ export function generateCdr(input: ClaimInput): CdrResult {
     warnings.push("Coverage type was not found in the pasted notes. Verify Basic, Emissions, PowerGard, or Extended coverage before submission.");
   }
 
+  const coverageLabel = inferCoverageLabel(`${input.customerComplaint}\n${input.technicianWriteup}`);
+
   const sourceNotes = [
     "WAM 110.12 requires sufficient detail for Complaint, Diagnostics, and Repair and limits labor to actual technician timecard hours.",
     "WAM 110.14 requires diagnostic labor to be supported in the Diagnostics field with diagnostic methods, tools, and procedures.",
@@ -146,7 +154,7 @@ export function generateCdr(input: ClaimInput): CdrResult {
   }
 
   const resultWithoutCopy = {
-    coverageLabel: "BASIC WARRANTY" as const,
+    coverageLabel,
     keyPartNumber,
     cause,
     diagnose,
@@ -289,9 +297,33 @@ function roundHours(value: number): number {
   return Math.round(value * 10) / 10;
 }
 
+function coverageBanner(label: CoverageLabel): string {
+  const map: Record<CoverageLabel, string> = {
+    "BASIC WARRANTY": "🟩 BASIC WARRANTY",
+    "EMISSIONS WARRANTY": "🟦 EMISSIONS WARRANTY",
+    "POWERGARD COMPREHENSIVE": "🟨 POWERGARD COMPREHENSIVE",
+    "EXTENDED WARRANTY": "🟥 EXTENDED WARRANTY",
+  };
+  return map[label];
+}
+
+function inferCoverageLabel(text: string): CoverageLabel {
+  const lower = text.toLowerCase();
+  if (/\bpowergard\b/i.test(text) || /\bcomprehensive\b/i.test(lower)) {
+    return "POWERGARD COMPREHENSIVE";
+  }
+  if (/\bemissions?\b/i.test(lower)) {
+    return "EMISSIONS WARRANTY";
+  }
+  if (/\bextended\b/i.test(lower)) {
+    return "EXTENDED WARRANTY";
+  }
+  return "BASIC WARRANTY";
+}
+
 function buildCopyText(result: Omit<CdrResult, "copyText">): string {
   return [
-    "🟩 BASIC WARRANTY",
+    coverageBanner(result.coverageLabel),
     "",
     `Key part number: ${result.keyPartNumber}`,
     `Cause: ${result.cause}`,
