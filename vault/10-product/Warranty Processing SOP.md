@@ -32,8 +32,8 @@ If information is missing or unclear, the app should ask targeted clarifying que
 
 Coverage determinations must use only authorized sources:
 
-- Uploaded Warranty Administration Manual (WAM).
-- CDR Format Transition Guide.
+- Uploaded Warranty Administration Manual (WAM), currently registered in [[90-sources/Source Register|Source Register]] as JDWAM0001 15Apr26 English.
+- CDR Format Transition Guide, currently registered in [[90-sources/Source Register|Source Register]] as the November 1, 2024 transition guide / JD WAM Interim Solution DTAC Number 218010.
 - Official Deere MST or flat-rate guides.
 - Service Advisor.
 - Official Deere warranty operation codes.
@@ -44,6 +44,8 @@ The app may search official Deere platforms or the web only to verify:
 - Valid warranty operation codes.
 
 The app must not use unofficial or unverified sources to determine coverage. If the required WAM, CDR guide, MST guide, Service Advisor output, or warranty operation code source is unavailable, the app should pause and request the missing source rather than guessing.
+
+Registered WAM and CDR files are confidential local project sources. The app should index them from server-side storage and should not expose raw PDF files publicly.
 
 ## Required CDR output format
 
@@ -89,7 +91,7 @@ Clean up:
 
 ## Cleanup rules
 
-Cleanup is limited to a maximum of 0.5 hours.
+Cleanup is limited to a maximum of 0.5 hours under the dealer operating rule unless a source-specific authorized rule applies.
 
 Cleanup is allowed only when:
 
@@ -105,25 +107,36 @@ Cleanup is not allowed for:
 
 If cleanup is not used, leave the field blank with no explanation.
 
+Source notes:
+
+- WAM 110.16 allows clean up labor only when there is loss of fluid and washing the area is necessary to complete a repair.
+- WAM 110.16 does not pay charges for washing the entire machine as preparation for or cleanup after a warranty repair.
+- WAM 110.16 lists a one hour maximum cleanup labor limit for OEM-only repairs.
+- WAM 110.17 separately covers major hydraulic failure cleanup for C&F repairs and requires documented cleanliness support.
+
 ## Approved diagnostic labor
 
 Per WAM 110.14, allowed diagnostic labor includes:
 
 - Service Advisor use.
-- Sensor testing.
-- Pressure testing.
-- Flow testing.
-- Continuity testing.
-- Software diagnostics.
-- Calibration.
-- Code clearing.
+- Multimeter or electrical testing.
+- Special tests required to eliminate possibilities and identify the failed component.
+- Hydraulic system tests that are more involved than a simple pressure test.
+- Complex electrical testing for shorts, opens, intermittent issues, and harness faults.
+- Software diagnostics and system-based alert validation when tied to a warrantable condition.
+- Calibration or recalibration when it corrects a warrantable condition and is not normal scheduled maintenance.
+- Reasonable time to verify and validate the failure.
 
 Per WAM 110.14, diagnostic labor does not include:
 
 - DTAC case entry.
-- Visual inspections.
-- Parts lookup.
-- Cleaning to find failure unless fluids were involved and cleaning was necessary to diagnose or verify the repair.
+- Referencing a DTAC case number as the justification for diagnostic time.
+- Building parts lists and estimates.
+- Searching DTAC solutions.
+- Visual inspections for external leaks.
+- Visual oil inspection or taking oil samples.
+- Obvious failures where repair is readily apparent.
+- Cleaning to verify the issue unless cleanup is separately eligible under WAM 110.16 or 110.17.
 
 ## Coverage determination behavior
 

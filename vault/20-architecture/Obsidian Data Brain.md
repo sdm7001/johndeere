@@ -110,16 +110,20 @@ Rules:
 
 - Coverage determinations must cite an authorized source.
 - If a source note lacks section, source type, or authority metadata, the app should not use it for coverage decisions.
+- Registered PDF sources should be tracked in [[90-sources/Source Register|Source Register]] with filename, version or effective date, checksum, and confidentiality handling.
+- Confidential PDFs should be indexed from server-side storage and never served as public static files.
 - MST times and warranty operation codes should be stored with the source name, retrieval date, and applicable model or component scope.
 - Service Advisor outputs should be attached to a claim record or referenced as evidence, not treated as general policy.
 
 ## Indexing workflow
 
 1. Author or update notes in Obsidian.
-2. Commit or sync the vault to the VPS.
-3. Indexer scans changed Markdown files.
-4. Indexer validates frontmatter against known schemas.
-5. Indexer stores:
+2. Register or update confidential source PDFs outside public Git tracking.
+3. Commit or sync the vault notes to the VPS.
+4. Indexer scans changed Markdown files and registered source files.
+5. Indexer validates frontmatter and source metadata against known schemas.
+6. Indexer records source checksum and ingestion timestamp for warranty-policy sources.
+7. Indexer stores:
    - note path
    - title
    - note type
@@ -127,7 +131,7 @@ Rules:
    - outgoing links
    - rendered/searchable text
    - updated timestamp
-6. App reads indexed records and renders sanitized Markdown.
+8. App reads indexed records and renders sanitized Markdown.
 
 ## Link conventions
 

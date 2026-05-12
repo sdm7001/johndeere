@@ -23,14 +23,15 @@ Use this note to turn uncertainty into explicit decisions. Each answer should ei
 
 ## Warranty source questions
 
-- Where will the uploaded Warranty Administration Manual be stored?
-- What version or effective date of the WAM should be treated as current?
-- Is the CDR Format Transition Guide available as a PDF, Markdown note, or structured source?
+- Where will the production copy of the uploaded Warranty Administration Manual be stored on the VPS?
+- Is JDWAM0001 15Apr26 English the current WAM version to use for version 1?
+- Should the CDR Format Transition Guide remain a PDF source, or should key rules also be converted into structured Markdown source notes?
 - How will official Deere MST or flat-rate guides be accessed?
 - How will valid warranty operation codes be verified?
 - Can Service Advisor evidence be exported and attached to claim records?
 - Who approves updates to authorized-source notes before the app uses them for coverage decisions?
 - What should the app do when a source conflict exists between WAM, MST, Service Advisor, and operation-code references?
+- Should source PDFs be stored in a private object store, encrypted droplet directory, or separate private repository?
 
 ## Obsidian questions
 
@@ -83,3 +84,13 @@ Use this note to turn uncertainty into explicit decisions. Each answer should ei
 
 - Status: proposed
 - Rationale: Warranty reimbursement depends on audit-ready claims. The app must not invent WAM citations, MST times, operation codes, or coverage determinations from unofficial sources.
+
+### Decision: Register uploaded WAM and CDR guide as authorized local sources
+
+- Status: accepted
+- Rationale: The user provided the WAM and CDR transition guide as project data. The documents are now tracked in [[90-sources/Source Register|Source Register]] with version/effective date and checksums.
+
+### Decision: Keep confidential source PDFs out of Git by default
+
+- Status: accepted
+- Rationale: The WAM is marked confidential. The local vault can contain the PDFs for Obsidian use, but Git ignores `vault/90-sources/files/*.pdf` until repository privacy and document-sharing rules are confirmed.

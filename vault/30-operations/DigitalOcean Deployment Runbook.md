@@ -39,11 +39,14 @@ status: draft
     postgres/
     backups/
     vault/
+    warranty-sources/
   env/
     app.env
 ```
 
 The app should not store secrets in the Git repo or Obsidian vault. Use environment files on the server or a secret manager.
+
+Confidential warranty source PDFs, including the WAM, should live in a server-side source directory such as `/opt/johndeere-app/data/warranty-sources/`. Do not serve this directory as public static content.
 
 ## Docker Compose services
 
@@ -94,6 +97,7 @@ Back up off the droplet:
 
 - Database dump.
 - Obsidian vault.
+- Confidential warranty source documents.
 - Uploaded attachments.
 - Environment variable inventory without secret values.
 - Docker Compose file and deployment scripts.

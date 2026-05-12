@@ -72,6 +72,7 @@ Candidate later workflows:
 - Authorized-source library for WAM, CDR transition guide, MST/flat-rate references, Service Advisor outputs, and warranty operation code references.
 - Claim drafting workflow that enforces the CDR structure in [[Warranty Processing SOP]].
 - Coverage decision workflow that stops non-covered claims and requires WAM section citations.
+- Source register that tracks confidential warranty documents, versions, checksums, and ingestion status in [[90-sources/Source Register|Source Register]].
 
 ## Data categories
 
