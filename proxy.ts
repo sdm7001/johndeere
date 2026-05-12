@@ -18,13 +18,26 @@ const protectedProxy = clerkMiddleware(async (auth, req) => {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const signInUrl = new URL("/sign-in", req.url);
-    signInUrl.searchParams.set("redirect_url", req.url);
+    const publicOrigin = getPublicOrigin(req);
+    const signInUrl = new URL("/sign-in", publicOrigin);
+    const returnUrl = new URL(`${req.nextUrl.pathname}${req.nextUrl.search}`, publicOrigin);
+    signInUrl.searchParams.set("redirect_url", returnUrl.toString());
     return NextResponse.redirect(signInUrl);
   }
 
   return NextResponse.next();
 });
+
+function getPublicOrigin(req: Request) {
+  const forwardedHost = req.headers.get("x-forwarded-host") ?? req.headers.get("host");
+  const forwardedProto = req.headers.get("x-forwarded-proto") ?? "https";
+
+  if (forwardedHost) {
+    return `${forwardedProto}://${forwardedHost}`;
+  }
+
+  return req.url;
+}
 
 export default clerkIsConfigured
   ? protectedProxy
