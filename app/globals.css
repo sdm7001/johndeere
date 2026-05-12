@@ -479,6 +479,13 @@ input:focus {
   min-height: 360px;
   overflow: hidden;
   padding: 1rem;
+  position: relative;
+}
+
+.auth-clerk-frame:empty::before {
+  color: var(--muted);
+  content: "Clerk sign-in form loading...";
+  font-weight: 700;
 }
 
 .auth-loading-note {
