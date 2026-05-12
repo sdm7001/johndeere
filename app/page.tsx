@@ -16,7 +16,7 @@ export default async function HomePage() {
           <strong>John Deere Warranty CDR</strong>
           <span>{appConfig.productionUrl}</span>
         </div>
-        {appConfig.clerkIsConfigured ? <UserButton afterSignOutUrl="/sign-in" /> : null}
+        {appConfig.clerkIsConfigured ? <UserButton /> : null}
       </header>
 
       <main className="main">
