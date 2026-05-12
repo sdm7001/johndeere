@@ -30,6 +30,10 @@ status: active
 - The app sign-in page now shows a visible sign-in shell and guidance while the Clerk embedded form loads.
 - The VPS runtime was temporarily switched to Clerk development keys for immediate functional testing while production Clerk custom-domain certificates are pending.
 - The live sign-in page now references Clerk's development frontend domain and the development Clerk assets are reachable over HTTPS.
+- PostgreSQL is running as `repo-db-1` with durable data under `/opt/johndeere-app/data/postgres`.
+- Claim records persist in PostgreSQL tables `claim_records` and `warranty_sources`.
+- Saved claim records support approval states: draft, needs clarification, approved, copied.
+- Obsidian warranty rules are indexed from `/opt/johndeere-app/repo/vault` and cited in generated draft source notes.
 
 ## Deployment approach
 
@@ -45,7 +49,9 @@ Run these on the VPS:
 cd /opt/johndeere-app/repo
 docker compose -f docker-compose.nginx.yml ps
 docker compose -f docker-compose.nginx.yml logs --tail=100 app
+docker compose -f docker-compose.nginx.yml logs --tail=100 db
 docker compose -f docker-compose.nginx.yml up -d --build
+docker compose -f docker-compose.nginx.yml exec db psql -U johndeere_app -d johndeere_warranty -c "\dt"
 nginx -t
 systemctl reload nginx
 certbot certificates -d jd.texmg.com
