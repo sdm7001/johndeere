@@ -28,6 +28,8 @@ status: active
 - Public DNS resolvers show the Clerk CNAME records.
 - Clerk TLS for `clerk.texmg.com` and `accounts.texmg.com` is still pending certificate activation on Clerk's side.
 - The app sign-in page now shows a visible sign-in shell and guidance while the Clerk embedded form loads.
+- The VPS runtime was temporarily switched to Clerk development keys for immediate functional testing while production Clerk custom-domain certificates are pending.
+- The live sign-in page now references Clerk's development frontend domain and the development Clerk assets are reachable over HTTPS.
 
 ## Deployment approach
 
