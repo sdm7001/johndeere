@@ -178,6 +178,23 @@ export async function updateClaimStatus(id: string, status: ClaimStatus) {
   return summarizeRecord(record);
 }
 
+export async function deleteClaimRecord(id: string): Promise<boolean> {
+  const deletedInDb = await deletePostgresRecord(id);
+  if (deletedInDb !== null) {
+    return deletedInDb;
+  }
+
+  // JSON file fallback
+  const filePath = getRecordPath(id);
+  try {
+    const { unlink } = await import("fs/promises");
+    await unlink(filePath);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 function getRecordPath(id: string) {
   return path.join(recordsDirectory, `${id}.json`);
 }
@@ -383,6 +400,20 @@ async function updatePostgresStatus(id: string, status: ClaimStatus) {
     warningsCount: Number(row.warnings_count),
     keyPartNumber: row.key_part_number,
   } satisfies ClaimRecordSummary;
+}
+
+async function deletePostgresRecord(id: string): Promise<boolean | null> {
+  if (!(await ensureSchema())) {
+    return null;
+  }
+
+  const db = getPool();
+  if (!db) {
+    return null;
+  }
+
+  const { rowCount } = await db.query(`delete from claim_records where id = $1`, [id]);
+  return (rowCount ?? 0) > 0;
 }
 
 function summarizeRecord(record: ClaimRecord): ClaimRecordSummary {

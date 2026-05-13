@@ -2,7 +2,7 @@ import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
-import { claimStatuses, listClaimRecords, updateClaimStatus, type ClaimStatus } from "@/lib/claim-records";
+import { claimStatuses, listClaimRecords, updateClaimStatus, deleteClaimRecord, type ClaimStatus } from "@/lib/claim-records";
 import { appConfig } from "@/lib/config";
 
 const statusUpdateSchema = z.object({
@@ -57,4 +57,26 @@ export async function PATCH(request: Request) {
   }
 
   return NextResponse.json({ record });
+}
+
+export async function DELETE(request: Request) {
+  if (appConfig.clerkIsConfigured) {
+    const { userId } = await auth();
+    if (!userId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+  }
+
+  const { searchParams } = new URL(request.url);
+  const id = searchParams.get("id");
+  if (!id) {
+    return NextResponse.json({ error: "Missing id." }, { status: 400 });
+  }
+
+  const deleted = await deleteClaimRecord(id);
+  if (!deleted) {
+    return NextResponse.json({ error: "Claim record not found." }, { status: 404 });
+  }
+
+  return NextResponse.json({ deleted: true });
 }

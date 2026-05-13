@@ -1458,6 +1458,22 @@ textarea::placeholder {
   background: #fee2e2;
 }
 
+.delete-record-btn {
+  background: transparent;
+  border: 1px solid #fca5a5;
+  border-radius: 6px;
+  color: var(--red);
+  cursor: pointer;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  padding: 0.2rem 0.6rem;
+}
+
+.delete-record-btn:hover {
+  background: #fee2e2;
+}
+
 .admin-empty {
   color: var(--muted);
   font-size: 0.9rem;

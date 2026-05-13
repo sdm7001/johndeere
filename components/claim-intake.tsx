@@ -223,6 +223,17 @@ export function ClaimIntake({ laborRate = 0 }: { laborRate?: number }) {
     setRecordsStatus("Latest saved claim drafts");
   }
 
+  async function deleteRecord(id: string) {
+    if (!window.confirm("Delete this claim draft? This cannot be undone.")) return;
+    const response = await fetch(`/api/claims?id=${encodeURIComponent(id)}`, { method: "DELETE" });
+    if (!response.ok) {
+      const payload = await response.json().catch(() => ({}));
+      setRecordsStatus((payload as { error?: string }).error ?? "Unable to delete claim.");
+      return;
+    }
+    setRecords((current) => current.filter((record) => record.id !== id));
+  }
+
   async function toggleSourceNote(notePath: string) {
     const next = new Set(expandedSources);
     if (next.has(notePath)) {
@@ -499,6 +510,14 @@ export function ClaimIntake({ laborRate = 0 }: { laborRate?: number }) {
                           {statusLabels[status]}
                         </button>
                       ))}
+                      <button
+                        type="button"
+                        className="delete-record-btn"
+                        onClick={() => void deleteRecord(record.id)}
+                        title="Delete this claim draft"
+                      >
+                        Delete
+                      </button>
                     </div>
                   </div>
                   <div className="record-meta">
