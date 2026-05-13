@@ -28,6 +28,15 @@ type CdrResult = {
   copyText: string;
 };
 
+type CdrDenialResult = {
+  denied: true;
+  reason: string;
+  explanation: string;
+  wamCitations: string[];
+  alternatives: string[];
+  specialAllowanceNote: string | null;
+};
+
 type ClaimRecordSummary = {
   id: string;
   createdAt: string;
@@ -72,6 +81,7 @@ const emptyForm = {
 export function ClaimIntake() {
   const [form, setForm] = useState(emptyForm);
   const [result, setResult] = useState<CdrResult | null>(null);
+  const [denial, setDenial] = useState<CdrDenialResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [copyStatus, setCopyStatus] = useState<string | null>(null);
@@ -111,6 +121,7 @@ export function ClaimIntake() {
   async function submitClaim() {
     setError(null);
     setCopyStatus(null);
+    setDenial(null);
     setIsSubmitting(true);
 
     try {
@@ -126,6 +137,12 @@ export function ClaimIntake() {
 
       if (!response.ok) {
         throw new Error(payload.error ?? "Unable to generate CDR draft.");
+      }
+
+      if (payload.denial) {
+        setDenial(payload.denial);
+        setResult(null);
+        return;
       }
 
       setResult(payload.result);
@@ -337,6 +354,7 @@ export function ClaimIntake() {
               onClick={() => {
                 setForm(emptyForm);
                 setResult(null);
+                setDenial(null);
                 setError(null);
                 setCopyStatus(null);
               }}
@@ -402,7 +420,36 @@ export function ClaimIntake() {
             <p>Review labor, warnings, and source guardrails before copying into the claim system.</p>
           </div>
         </div>
-        {result ? (
+        {denial ? (
+          <div className="denial-panel">
+            <div className="denial-header">
+              <span className="denial-stop">STOP — Not Covered</span>
+              <p>{denial.explanation}</p>
+            </div>
+            <div className="denial-section">
+              <strong>WAM denial citations</strong>
+              <ul>
+                {denial.wamCitations.map((cite) => (
+                  <li key={cite}>{cite}</li>
+                ))}
+              </ul>
+            </div>
+            <div className="denial-section">
+              <strong>Alternative paths</strong>
+              <ul>
+                {denial.alternatives.map((alt) => (
+                  <li key={alt}>{alt}</li>
+                ))}
+              </ul>
+            </div>
+            {denial.specialAllowanceNote ? (
+              <div className="denial-allowance">
+                <strong>Special Allowance / D-Policy</strong>
+                <p>{denial.specialAllowanceNote}</p>
+              </div>
+            ) : null}
+          </div>
+        ) : result ? (
           <>
             <div className="coverage">
               {coverageEmoji[result.coverageLabel]} {result.coverageLabel}

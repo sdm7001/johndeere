@@ -2,7 +2,7 @@ import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 
 import { refineCdrWithAnthropic } from "@/lib/anthropic-cdr";
-import { claimInputSchema, generateCdr } from "@/lib/cdr";
+import { checkCoverageEligibility, claimInputSchema, generateCdr } from "@/lib/cdr";
 import { saveClaimRecord } from "@/lib/claim-records";
 import { appConfig } from "@/lib/config";
 import { buildSourceNotes } from "@/lib/warranty-rules";
@@ -29,6 +29,11 @@ export async function POST(request: Request) {
       },
       { status: 400 },
     );
+  }
+
+  const denial = checkCoverageEligibility(parsed.data);
+  if (denial) {
+    return NextResponse.json({ denial });
   }
 
   let result = generateCdr(parsed.data);

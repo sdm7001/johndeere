@@ -41,6 +41,17 @@ export type CdrResult = {
   copyText: string;
 };
 
+export type CdrDenialReason = "customer_pay" | "accidental_damage" | "scheduled_maintenance" | "cosmetic_damage";
+
+export type CdrDenialResult = {
+  denied: true;
+  reason: CdrDenialReason;
+  explanation: string;
+  wamCitations: string[];
+  alternatives: string[];
+  specialAllowanceNote: string | null;
+};
+
 const diagnosticKeywords = [
   "diagnos",
   "service advisor",
@@ -89,6 +100,164 @@ const nonClaimableDiagnosticKeywords = [
   "oil sample",
   "obvious failure",
 ];
+
+// ---------------------------------------------------------------------------
+// Non-covered detection — must run before CDR generation
+// ---------------------------------------------------------------------------
+
+const customerPayKeywords = [
+  "customer pay",
+  "customer-pay",
+  "c-pay",
+  "cpay",
+  "retail pay",
+  "owner pay",
+  "customer responsibility",
+  "not warranty",
+  "non-warranty",
+  "out of warranty",
+];
+
+const accidentalDamageKeywords = [
+  "accident",
+  "collision",
+  "impact damage",
+  "ran into",
+  "hit a",
+  "vandalism",
+  "vandalized",
+  "misuse",
+  "operator abuse",
+  "operator damage",
+  "customer damage",
+  "customer damaged",
+  "operator error caused",
+];
+
+const scheduledMaintenanceKeywords = [
+  "oil change",
+  "scheduled maintenance",
+  "pm service",
+  "preventive maintenance",
+  "routine service",
+  "routine maintenance",
+  "annual service",
+  "annual maintenance",
+  "50 hour",
+  "100 hour",
+  "250 hour",
+  "500 hour",
+];
+
+const failureKeywords = [
+  "fail",
+  "broke",
+  "broken",
+  "crack",
+  "leak",
+  "fault code",
+  "warning light",
+  "warning lamp",
+  "defect",
+  "malfunction",
+  "seized",
+  "stuck",
+  "shorted",
+  "open circuit",
+  "overheated",
+  "overheating",
+];
+
+const cosmeticKeywords = ["paint chip", "scratch", "cosmetic", "dent", "rust", "fading", "discolor"];
+
+export function checkCoverageEligibility(input: ClaimInput): CdrDenialResult | null {
+  const combined = `${input.customerComplaint}\n${input.technicianWriteup}`.toLowerCase();
+
+  // Customer-pay / non-warranty flag
+  if (matchesAny(combined, customerPayKeywords)) {
+    return {
+      denied: true,
+      reason: "customer_pay",
+      explanation:
+        "The notes indicate this repair was designated as customer-pay or non-warranty. John Deere warranty reimburses only covered failures during the applicable warranty period; customer-pay work is not eligible for CDR submission.",
+      wamCitations: [
+        "WAM 110.1 — Warranty coverage applies only to failures occurring during the applicable warranty period and does not extend to customer-elected or customer-pay repairs.",
+        "WAM 110.3 — The dealer must obtain customer authorization for non-warranty work; submitting customer-pay repair time as warranty labor is not permitted.",
+      ],
+      alternatives: [
+        "If the failure is warrantable but the customer was charged in error, void the customer invoice, document the covered failure, and submit as warranty.",
+        "If only part of the repair is warranty-eligible, split the workorder and submit only the warrantable portion.",
+        "Special Allowance (D-Policy) may be available if the machine is slightly out of warranty period and the failure is otherwise warrantable — contact your Deere Warranty zone contact.",
+      ],
+      specialAllowanceNote:
+        "If this repair is related to a known product issue, a Special Allowance or D-Policy authorization may allow reimbursement. Contact your Deere zone warranty rep.",
+    };
+  }
+
+  // Accidental or operator damage
+  if (matchesAny(combined, accidentalDamageKeywords)) {
+    return {
+      denied: true,
+      reason: "accidental_damage",
+      explanation:
+        "The notes indicate damage caused by accident, collision, misuse, or operator error. John Deere warranty does not cover damage resulting from accidents, operator abuse, negligence, unauthorized modifications, or external causes.",
+      wamCitations: [
+        "WAM 110.2 — Warranty does not apply to damage caused by accident, misuse, neglect, improper operation, improper storage, or unauthorized modification.",
+        "WAM 110.2 — External damage from collision, impact, or operator error is not covered under any standard John Deere warranty plan.",
+      ],
+      alternatives: [
+        "File a claim with the customer's equipment insurance if the damage resulted from an insured event.",
+        "If the machine has an extended protection plan (PowerGard or similar), verify whether accidental damage coverage was included — some plans offer this as an add-on.",
+        "For damage adjacent to a warrantable failure (e.g., a component damaged by a separate covered leak), separate the warrantable portion and submit only that portion.",
+      ],
+      specialAllowanceNote: null,
+    };
+  }
+
+  // Cosmetic damage as sole complaint
+  if (matchesAny(combined, cosmeticKeywords) && !matchesAny(combined, failureKeywords)) {
+    return {
+      denied: true,
+      reason: "cosmetic_damage",
+      explanation:
+        "The complaint appears to be limited to cosmetic issues (paint, scratches, dents, or surface rust) with no documented functional failure. John Deere warranty covers functional defects; cosmetic blemishes that do not affect machine operation are generally excluded.",
+      wamCitations: [
+        "WAM 110.2 — Cosmetic defects that do not impair the mechanical or functional operation of the machine are not covered under standard warranty.",
+        "WAM 110.5 — Surface rust, minor paint defects, and normal weathering are excluded from warranty coverage.",
+      ],
+      alternatives: [
+        "If the cosmetic issue is the result of a covered failure (e.g., a hydraulic leak caused paint damage), document the root cause and submit the warrantable failure — note the cosmetic consequence in the write-up.",
+        "Contact your Deere zone rep regarding paint or finish campaigns for known product quality issues.",
+        "D-Policy or goodwill consideration may apply for cosmetic issues on low-hour machines within a reasonable time of delivery.",
+      ],
+      specialAllowanceNote:
+        "For new machines with cosmetic defects present at or near delivery, contact your Deere zone representative regarding pre-delivery inspection (PDI) policy or goodwill support.",
+    };
+  }
+
+  // Scheduled maintenance ONLY (no failure keywords)
+  if (matchesAny(combined, scheduledMaintenanceKeywords) && !matchesAny(combined, failureKeywords)) {
+    return {
+      denied: true,
+      reason: "scheduled_maintenance",
+      explanation:
+        "The notes describe scheduled or routine maintenance only, with no documented functional failure. John Deere warranty covers defects in materials and workmanship; routine maintenance services (oil changes, filter replacements, lubrication, and scheduled inspections) are the owner's responsibility and are not reimbursable.",
+      wamCitations: [
+        "WAM 110.4 — Scheduled maintenance and normal wear items are the owner's responsibility and are not covered under warranty.",
+        "WAM 110.4 — Engine oil, filters, greasing, lubrication, and routine adjustments required by the operator's manual are maintenance items excluded from warranty reimbursement.",
+      ],
+      alternatives: [
+        "If the maintenance revealed a covered failure (e.g., an oil change discovered a failed oil cooler), document the failure separately and submit a warranty claim for the repair — the maintenance labor itself remains non-claimable.",
+        "PowerGard Comprehensive and some extended plans include maintenance coverage — verify the specific plan terms with your Deere zone rep or the customer's coverage documents.",
+        "If a Deere Technical Assistance bulletin (DTAC) required an off-interval service or special maintenance procedure to correct a defect, that bulletin-directed service may be warranty-eligible — retrieve the DTAC number and cite it in the CDR.",
+      ],
+      specialAllowanceNote:
+        "If a DTAC or Product Improvement Program (PIP) directed this maintenance as a fix for a known defect, it may qualify for reimbursement. Locate and cite the DTAC number before submitting.",
+    };
+  }
+
+  return null;
+}
 
 export function generateCdr(input: ClaimInput): CdrResult {
   const sentences = splitIntoSteps(input.technicianWriteup);

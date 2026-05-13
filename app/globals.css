@@ -963,6 +963,85 @@ textarea::placeholder {
   width: 72px;
 }
 
+.denial-panel {
+  display: grid;
+  gap: 1rem;
+}
+
+.denial-header {
+  background: #fff1f0;
+  border: 1px solid #fca5a5;
+  border-radius: 18px;
+  padding: 1rem;
+}
+
+.denial-stop {
+  color: var(--red);
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  margin-bottom: 0.5rem;
+  text-transform: uppercase;
+}
+
+.denial-header p {
+  color: #450a0a;
+  line-height: 1.55;
+  margin: 0;
+}
+
+.denial-section {
+  background: #f7faf4;
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  color: var(--muted);
+  font-size: 0.9rem;
+  line-height: 1.5;
+  padding: 0.9rem 1rem;
+}
+
+.denial-section strong {
+  color: var(--foreground);
+  display: block;
+  font-size: 0.78rem;
+  font-weight: 900;
+  letter-spacing: 0.07em;
+  margin-bottom: 0.55rem;
+  text-transform: uppercase;
+}
+
+.denial-section ul {
+  margin: 0;
+  padding-left: 1.1rem;
+}
+
+.denial-section li {
+  margin-bottom: 0.35rem;
+}
+
+.denial-allowance {
+  background: #fff9da;
+  border: 1px solid #f4d35e;
+  border-radius: 18px;
+  padding: 0.85rem 1rem;
+}
+
+.denial-allowance strong {
+  display: block;
+  font-size: 0.78rem;
+  font-weight: 900;
+  letter-spacing: 0.07em;
+  margin-bottom: 0.45rem;
+  text-transform: uppercase;
+}
+
+.denial-allowance p {
+  color: #4f4200;
+  line-height: 1.5;
+  margin: 0;
+}
+
 .setup {
   background: #fff4f2;
   border: 1px solid #ffcdc6;
