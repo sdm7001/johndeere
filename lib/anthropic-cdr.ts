@@ -148,7 +148,7 @@ export async function refineCdrWithAnthropic(input: ClaimInput, baseline: CdrRes
     "",
     "Machine details (if provided):",
     [
-      input.model ? `Model: ${input.model}` : null,
+      input.machineModel ? `Model: ${input.machineModel}` : null,
       input.serialNumber ? `Serial: ${input.serialNumber}` : null,
       input.machineHours ? `Hours: ${input.machineHours}` : null,
       input.warrantyPlan ? `Warranty plan: ${input.warrantyPlan}` : null,
