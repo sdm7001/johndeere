@@ -33,6 +33,8 @@ export type CdrResult = {
   diagnose: CdrStep[];
   repair: CdrStep[];
   cleanUp: CdrStep[];
+  verification: string;
+  auditExplanation: string;
   workorderTimeRequested: number | null;
   claimableTime: number;
   timeDifference: number | null;
@@ -356,6 +358,8 @@ export function generateCdr(input: ClaimInput): CdrResult {
     diagnose,
     repair,
     cleanUp,
+    verification: "",
+    auditExplanation: "",
     workorderTimeRequested,
     claimableTime,
     timeDifference,
@@ -528,7 +532,7 @@ function buildCopyText(result: Omit<CdrResult, "copyText">, input?: ClaimInput):
     if (input.repairDate) machineHeader.push(`Repair date: ${input.repairDate}`);
   }
 
-  return [
+  const lines = [
     coverageBanner(result.coverageLabel),
     ...(machineHeader.length > 0 ? ["", machineHeader.join(" | ")] : []),
     "",
@@ -540,7 +544,11 @@ function buildCopyText(result: Omit<CdrResult, "copyText">, input?: ClaimInput):
     ...formatSteps(result.repair),
     "Clean up:",
     ...formatSteps(result.cleanUp),
-  ].join("\n");
+  ];
+  if (result.verification) {
+    lines.push("Verification:", result.verification);
+  }
+  return lines.join("\n");
 }
 
 function formatSteps(steps: CdrStep[]): string[] {

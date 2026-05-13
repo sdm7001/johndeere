@@ -598,7 +598,21 @@ export function ClaimIntake({ laborRate = 0 }: { laborRate?: number }) {
                 text={formatStepsText(result.cleanUp)}
                 onCopy={(t) => void copyText(t, "Clean up")}
               />
+              {result.verification ? (
+                <CdrSectionBlock
+                  label="Verification"
+                  text={result.verification}
+                  onCopy={(t) => void copyText(t, "Verification")}
+                />
+              ) : null}
             </div>
+
+            {result.auditExplanation ? (
+              <div className="audit-explanation">
+                <span className="audit-explanation-label">Audit readiness note</span>
+                <p>{result.auditExplanation}</p>
+              </div>
+            ) : null}
 
             <div className="actions result-actions">
               <button className="button secondary" type="button" onClick={copyCdr}>

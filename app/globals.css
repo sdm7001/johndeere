@@ -1227,6 +1227,32 @@ textarea::placeholder {
   margin: 0;
 }
 
+/* Audit explanation block */
+.audit-explanation {
+  background: #f0f7ff;
+  border: 1px solid #b3d0f5;
+  border-radius: 14px;
+  padding: 1rem 1.1rem;
+  margin-top: 1rem;
+}
+
+.audit-explanation-label {
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  margin-bottom: 0.5rem;
+  text-transform: uppercase;
+  color: #1a5fa8;
+}
+
+.audit-explanation p {
+  color: #1a3a60;
+  font-size: 0.88rem;
+  line-height: 1.55;
+  margin: 0;
+}
+
 /* Admin nav link in topbar */
 .admin-nav-link {
   color: rgb(255 255 255 / 0.82);
