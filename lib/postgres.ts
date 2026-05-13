@@ -36,6 +36,12 @@ export async function ensureSchema() {
         customer_complaint text not null,
         technician_writeup text not null,
         workorder_time text not null,
+        machine_model text,
+        serial_number text,
+        machine_hours text,
+        sale_date text,
+        warranty_plan text,
+        repair_date text,
         key_part_number text not null default '',
         claimable_time numeric not null default 0,
         warnings_count integer not null default 0,
@@ -48,6 +54,14 @@ export async function ensureSchema() {
 
       create index if not exists claim_records_status_idx
         on claim_records (status);
+
+      -- Add machine detail columns if they don't exist yet (idempotent migration)
+      alter table claim_records add column if not exists machine_model text;
+      alter table claim_records add column if not exists serial_number text;
+      alter table claim_records add column if not exists machine_hours text;
+      alter table claim_records add column if not exists sale_date text;
+      alter table claim_records add column if not exists warranty_plan text;
+      alter table claim_records add column if not exists repair_date text;
 
       create table if not exists warranty_sources (
         id text primary key,

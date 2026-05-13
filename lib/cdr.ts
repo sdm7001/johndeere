@@ -4,6 +4,13 @@ export const claimInputSchema = z.object({
   customerComplaint: z.string().trim().min(1, "Original customer complaint is required."),
   technicianWriteup: z.string().trim().min(1, "Technician write-up is required."),
   workorderTime: z.string().trim().min(1, "Workorder time to collect is required."),
+  // Machine / equipment details (all optional — warn when missing)
+  machineModel: z.string().trim().optional(),
+  serialNumber: z.string().trim().optional(),
+  machineHours: z.string().trim().optional(),
+  saleDate: z.string().trim().optional(),
+  warrantyPlan: z.string().trim().optional(),
+  repairDate: z.string().trim().optional(),
 });
 
 export type ClaimInput = z.infer<typeof claimInputSchema>;
@@ -119,6 +126,26 @@ export function generateCdr(input: ClaimInput): CdrResult {
     warnings.push("Coverage type was not found in the pasted notes. Verify Basic, Emissions, PowerGard, or Extended coverage before submission.");
   }
 
+  // Warn on missing machine details required by the SOP
+  if (!input.machineModel?.trim()) {
+    warnings.push("Machine model not provided. Add model before submission.");
+  }
+  if (!input.serialNumber?.trim()) {
+    warnings.push("Serial number not provided. Required for claim submission.");
+  }
+  if (!input.machineHours?.trim()) {
+    warnings.push("Machine hours not provided. Required to verify coverage eligibility.");
+  }
+  if (!input.saleDate?.trim()) {
+    warnings.push("Sale date not provided. Required to verify warranty period.");
+  }
+  if (!input.warrantyPlan?.trim()) {
+    warnings.push("Warranty plan not provided. Confirm coverage type (Basic, PowerGard, etc.).");
+  }
+  if (!input.repairDate?.trim()) {
+    warnings.push("Repair date not provided. Required for claim submission.");
+  }
+
   const coverageLabel = inferCoverageLabel(`${input.customerComplaint}\n${input.technicianWriteup}`);
 
   const sourceNotes = [
@@ -169,7 +196,7 @@ export function generateCdr(input: ClaimInput): CdrResult {
 
   return {
     ...resultWithoutCopy,
-    copyText: buildCopyText(resultWithoutCopy),
+    copyText: buildCopyText(resultWithoutCopy, input),
   };
 }
 
@@ -321,9 +348,20 @@ function inferCoverageLabel(text: string): CoverageLabel {
   return "BASIC WARRANTY";
 }
 
-function buildCopyText(result: Omit<CdrResult, "copyText">): string {
+function buildCopyText(result: Omit<CdrResult, "copyText">, input?: ClaimInput): string {
+  const machineHeader: string[] = [];
+  if (input) {
+    if (input.machineModel) machineHeader.push(`Model: ${input.machineModel}`);
+    if (input.serialNumber) machineHeader.push(`Serial: ${input.serialNumber}`);
+    if (input.machineHours) machineHeader.push(`Hours: ${input.machineHours}`);
+    if (input.warrantyPlan) machineHeader.push(`Plan: ${input.warrantyPlan}`);
+    if (input.saleDate) machineHeader.push(`Sale date: ${input.saleDate}`);
+    if (input.repairDate) machineHeader.push(`Repair date: ${input.repairDate}`);
+  }
+
   return [
     coverageBanner(result.coverageLabel),
+    ...(machineHeader.length > 0 ? ["", machineHeader.join(" | ")] : []),
     "",
     `Key part number: ${result.keyPartNumber}`,
     `Cause: ${result.cause}`,

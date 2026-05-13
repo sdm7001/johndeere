@@ -61,6 +61,12 @@ const emptyForm = {
   customerComplaint: "",
   technicianWriteup: "",
   workorderTime: "",
+  machineModel: "",
+  serialNumber: "",
+  machineHours: "",
+  saleDate: "",
+  warrantyPlan: "",
+  repairDate: "",
 };
 
 export function ClaimIntake() {
@@ -245,6 +251,79 @@ export function ClaimIntake() {
             <div className="field-footer">
               <span>Use decimal hours when possible.</span>
               <strong>{form.workorderTime.trim() || "0.0"} hr target</strong>
+            </div>
+          </div>
+
+          <div className="field field-card machine-field">
+            <div className="field-heading">
+              <span className="field-number">04</span>
+              <div>
+                <label>Machine details</label>
+                <p>Enter equipment information required for claim submission. All fields optional but improve CDR accuracy.</p>
+              </div>
+              <span className="optional-pill">Optional</span>
+            </div>
+            <div className="machine-grid">
+              <div className="machine-input-group">
+                <label htmlFor="machineModel">Model</label>
+                <input
+                  id="machineModel"
+                  type="text"
+                  value={form.machineModel}
+                  onChange={(event) => setForm({ ...form, machineModel: event.target.value })}
+                  placeholder="e.g. 6155M"
+                />
+              </div>
+              <div className="machine-input-group">
+                <label htmlFor="serialNumber">Serial number</label>
+                <input
+                  id="serialNumber"
+                  type="text"
+                  value={form.serialNumber}
+                  onChange={(event) => setForm({ ...form, serialNumber: event.target.value })}
+                  placeholder="e.g. 1RW6155MXPM123456"
+                />
+              </div>
+              <div className="machine-input-group">
+                <label htmlFor="machineHours">Machine hours</label>
+                <input
+                  id="machineHours"
+                  type="text"
+                  value={form.machineHours}
+                  onChange={(event) => setForm({ ...form, machineHours: event.target.value })}
+                  placeholder="e.g. 412"
+                />
+              </div>
+              <div className="machine-input-group">
+                <label htmlFor="warrantyPlan">Warranty plan</label>
+                <input
+                  id="warrantyPlan"
+                  type="text"
+                  value={form.warrantyPlan}
+                  onChange={(event) => setForm({ ...form, warrantyPlan: event.target.value })}
+                  placeholder="e.g. Basic, PowerGard"
+                />
+              </div>
+              <div className="machine-input-group">
+                <label htmlFor="saleDate">Sale date</label>
+                <input
+                  id="saleDate"
+                  type="text"
+                  value={form.saleDate}
+                  onChange={(event) => setForm({ ...form, saleDate: event.target.value })}
+                  placeholder="e.g. 2024-03-15"
+                />
+              </div>
+              <div className="machine-input-group">
+                <label htmlFor="repairDate">Repair date</label>
+                <input
+                  id="repairDate"
+                  type="text"
+                  value={form.repairDate}
+                  onChange={(event) => setForm({ ...form, repairDate: event.target.value })}
+                  placeholder="e.g. 2026-05-10"
+                />
+              </div>
             </div>
           </div>
 

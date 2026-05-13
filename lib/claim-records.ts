@@ -126,9 +126,10 @@ async function savePostgresRecord(record: ClaimRecord) {
     insert into claim_records (
       id, created_at, updated_at, created_by, status,
       customer_complaint, technician_writeup, workorder_time,
+      machine_model, serial_number, machine_hours, sale_date, warranty_plan, repair_date,
       key_part_number, claimable_time, warnings_count, input, result
     )
-    values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+    values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19)
     `,
     [
       record.id,
@@ -139,6 +140,12 @@ async function savePostgresRecord(record: ClaimRecord) {
       record.input.customerComplaint,
       record.input.technicianWriteup,
       record.input.workorderTime,
+      record.input.machineModel ?? null,
+      record.input.serialNumber ?? null,
+      record.input.machineHours ?? null,
+      record.input.saleDate ?? null,
+      record.input.warrantyPlan ?? null,
+      record.input.repairDate ?? null,
       record.result.keyPartNumber,
       record.result.claimableTime,
       record.result.warnings.length,

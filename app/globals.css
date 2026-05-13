@@ -547,6 +547,52 @@ a {
   text-transform: uppercase;
 }
 
+.optional-pill {
+  background: #eef3e8;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 900;
+  padding: 0.35rem 0.55rem;
+  text-transform: uppercase;
+}
+
+.machine-grid {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  margin-top: 0.85rem;
+}
+
+.machine-input-group {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.machine-input-group label {
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.machine-input-group input {
+  background: linear-gradient(180deg, #ffffff, #fbfdf8);
+  border: 1px solid rgb(54 124 43 / 0.18);
+  border-radius: 10px;
+  color: var(--foreground);
+  padding: 0.55rem 0.75rem;
+  transition:
+    border-color 140ms ease,
+    box-shadow 140ms ease;
+  width: 100%;
+}
+
+.machine-input-group input::placeholder {
+  color: rgb(89 101 83 / 0.6);
+  font-size: 0.88rem;
+}
+
 textarea {
   background:
     linear-gradient(180deg, #ffffff, #fbfdf8),
