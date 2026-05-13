@@ -27,7 +27,12 @@ const sourceStatus = [
 
 type Props = {
   metrics: DashboardMetrics | null;
+  laborRate?: number;
 };
+
+function fmtDollars(n: number): string {
+  return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(n);
+}
 
 function fmt(n: number | undefined | null): string {
   if (n === null || n === undefined) return "—";
@@ -39,7 +44,9 @@ function fmtHours(n: number | undefined | null): string {
   return `${n.toFixed(1)} hr`;
 }
 
-export function ManagerDashboard({ metrics }: Props) {
+export function ManagerDashboard({ metrics, laborRate = 0 }: Props) {
+  const reimbursementValue = metrics && laborRate > 0 ? metrics.totalClaimableHours * laborRate : null;
+
   const metricCards = [
     {
       label: "Draft queue",
@@ -50,10 +57,12 @@ export function ManagerDashboard({ metrics }: Props) {
       tone: "green",
     },
     {
-      label: "Total claimable hours",
-      value: metrics ? fmtHours(metrics.totalClaimableHours) : "—",
+      label: reimbursementValue !== null ? "Reimbursement exposure" : "Total claimable hours",
+      value: reimbursementValue !== null ? fmtDollars(reimbursementValue) : metrics ? fmtHours(metrics.totalClaimableHours) : "—",
       detail: metrics
-        ? `Across ${fmt(metrics.totalClaims)} saved claim${metrics.totalClaims === 1 ? "" : "s"}`
+        ? reimbursementValue !== null
+          ? `${fmtHours(metrics.totalClaimableHours)} × ${fmtDollars(laborRate)}/hr across ${fmt(metrics.totalClaims)} claim${metrics.totalClaims === 1 ? "" : "s"}`
+          : `Across ${fmt(metrics.totalClaims)} saved claim${metrics.totalClaims === 1 ? "" : "s"} · Set WARRANTY_LABOR_RATE to see dollar value`
         : "Connecting to database…",
       tone: "green",
     },

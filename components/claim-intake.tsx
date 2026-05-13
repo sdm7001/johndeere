@@ -78,15 +78,21 @@ const emptyForm = {
   repairDate: "",
 };
 
-export function ClaimIntake() {
+export function ClaimIntake({ laborRate = 0 }: { laborRate?: number }) {
   const [form, setForm] = useState(emptyForm);
   const [result, setResult] = useState<CdrResult | null>(null);
   const [denial, setDenial] = useState<CdrDenialResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoadingDraft, setIsLoadingDraft] = useState(false);
   const [copyStatus, setCopyStatus] = useState<string | null>(null);
   const [records, setRecords] = useState<ClaimRecordSummary[]>([]);
   const [recordsStatus, setRecordsStatus] = useState("Loading record history...");
+  const [filterStatus, setFilterStatus] = useState<ClaimStatus | "all">("all");
+  const [filterWarnings, setFilterWarnings] = useState<boolean | null>(null);
+  const [expandedSources, setExpandedSources] = useState<Set<string>>(new Set());
+  const [sourceContent, setSourceContent] = useState<Record<string, string>>({});
+
   const completedFields = [
     Boolean(form.customerComplaint.trim()),
     Boolean(form.technicianWriteup.trim()),
@@ -97,6 +103,15 @@ export function ClaimIntake() {
     () => form.customerComplaint.trim() && form.technicianWriteup.trim() && form.workorderTime.trim(),
     [form],
   );
+
+  const filteredRecords = useMemo(() => {
+    return records.filter((r) => {
+      if (filterStatus !== "all" && r.status !== filterStatus) return false;
+      if (filterWarnings === true && r.warningsCount === 0) return false;
+      if (filterWarnings === false && r.warningsCount > 0) return false;
+      return true;
+    });
+  }, [records, filterStatus, filterWarnings]);
 
   useEffect(() => {
     void loadRecords();
@@ -115,6 +130,23 @@ export function ClaimIntake() {
       setRecordsStatus(payload.records.length ? "Latest saved claim drafts" : "No saved claim drafts yet");
     } catch (caught) {
       setRecordsStatus(caught instanceof Error ? caught.message : "Unable to load records.");
+    }
+  }
+
+  async function openDraft(id: string) {
+    setIsLoadingDraft(true);
+    setCopyStatus(null);
+    setError(null);
+    setDenial(null);
+    try {
+      const response = await fetch(`/api/claims/${id}`, { cache: "no-store" });
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload.error ?? "Unable to load draft.");
+      setResult(payload.record.result);
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : "Unable to load draft.");
+    } finally {
+      setIsLoadingDraft(false);
     }
   }
 
@@ -147,7 +179,7 @@ export function ClaimIntake() {
 
       setResult(payload.result);
       if (payload.record) {
-        setRecords((current) => [toRecordSummary(payload.record), ...current].slice(0, 25));
+        setRecords((current) => [toRecordSummary(payload.record), ...current].slice(0, 50));
         setRecordsStatus("Latest saved claim drafts");
       } else {
         await loadRecords();
@@ -159,11 +191,15 @@ export function ClaimIntake() {
     }
   }
 
+  async function copyText(text: string, label: string) {
+    await navigator.clipboard.writeText(text);
+    setCopyStatus(`${label} copied to clipboard.`);
+    setTimeout(() => setCopyStatus(null), 3000);
+  }
+
   async function copyCdr() {
     if (!result) return;
-
-    await navigator.clipboard.writeText(result.copyText);
-    setCopyStatus("CDR copied to clipboard.");
+    await copyText(result.copyText, "CDR");
   }
 
   async function updateRecordStatus(id: string, status: ClaimStatus) {
@@ -183,6 +219,29 @@ export function ClaimIntake() {
 
     setRecords((current) => current.map((record) => (record.id === id ? payload.record : record)));
     setRecordsStatus("Latest saved claim drafts");
+  }
+
+  async function toggleSourceNote(notePath: string) {
+    const next = new Set(expandedSources);
+    if (next.has(notePath)) {
+      next.delete(notePath);
+      setExpandedSources(next);
+      return;
+    }
+    next.add(notePath);
+    setExpandedSources(next);
+
+    if (!sourceContent[notePath]) {
+      try {
+        const response = await fetch(`/api/vault?path=${encodeURIComponent(notePath)}`);
+        const payload = await response.json();
+        if (response.ok) {
+          setSourceContent((prev) => ({ ...prev, [notePath]: payload.content }));
+        }
+      } catch {
+        // ignore fetch errors for source preview
+      }
+    }
   }
 
   return (
@@ -371,17 +430,59 @@ export function ClaimIntake() {
               <span className="section-kicker">Saved records</span>
               <h3>Claim draft history</h3>
             </div>
-            <span>{records.length} saved</span>
+            <span>{filteredRecords.length} shown</span>
           </div>
-          {records.length ? (
+
+          <div className="record-filters">
+            <div className="filter-group">
+              {(["all", "draft", "needs_clarification", "approved", "copied"] as const).map((s) => (
+                <button
+                  key={s}
+                  type="button"
+                  className={filterStatus === s ? "filter-chip active" : "filter-chip"}
+                  onClick={() => setFilterStatus(s)}
+                >
+                  {s === "all" ? "All" : statusLabels[s]}
+                </button>
+              ))}
+            </div>
+            <div className="filter-group">
+              <button
+                type="button"
+                className={filterWarnings === true ? "filter-chip active" : "filter-chip"}
+                onClick={() => setFilterWarnings(filterWarnings === true ? null : true)}
+              >
+                Has warnings
+              </button>
+              <button
+                type="button"
+                className={filterWarnings === false ? "filter-chip active" : "filter-chip"}
+                onClick={() => setFilterWarnings(filterWarnings === false ? null : false)}
+              >
+                No warnings
+              </button>
+            </div>
+          </div>
+
+          {filteredRecords.length ? (
             <div className="record-list">
-              {records.slice(0, 6).map((record) => (
+              {filteredRecords.slice(0, 25).map((record) => (
                 <article className="record-row" key={record.id}>
-                  <div>
-                    <strong>{record.customerComplaintPreview || "No complaint preview"}</strong>
-                    <span>
-                      {formatDate(record.createdAt)} · key part {record.keyPartNumber || "blank"}
-                    </span>
+                  <div className="record-row-main">
+                    <div>
+                      <strong>{record.customerComplaintPreview || "No complaint preview"}</strong>
+                      <span>
+                        {formatDate(record.createdAt)} · key part {record.keyPartNumber || "blank"}
+                      </span>
+                    </div>
+                    <button
+                      className="button secondary open-draft-button"
+                      type="button"
+                      disabled={isLoadingDraft}
+                      onClick={() => void openDraft(record.id)}
+                    >
+                      Open draft
+                    </button>
                   </div>
                   <div className="approval-state">
                     <span className={`approval-pill ${record.status}`}>{statusLabels[record.status]}</span>
@@ -401,13 +502,16 @@ export function ClaimIntake() {
                   <div className="record-meta">
                     <span>{record.workorderTime} hr requested</span>
                     <span>{record.claimableTime.toFixed(1)} hr claimable</span>
+                    {laborRate > 0 && (
+                      <span className="record-dollar">{formatDollars(record.claimableTime * laborRate)}</span>
+                    )}
                     <span>{record.warningsCount} warnings</span>
                   </div>
                 </article>
               ))}
             </div>
           ) : (
-            <p className="record-empty">{recordsStatus}</p>
+            <p className="record-empty">{records.length ? "No records match the current filters." : recordsStatus}</p>
           )}
         </div>
       </section>
@@ -420,7 +524,12 @@ export function ClaimIntake() {
             <p>Review labor, warnings, and source guardrails before copying into the claim system.</p>
           </div>
         </div>
-        {denial ? (
+        {isLoadingDraft ? (
+          <div className="empty result-empty">
+            <span className="empty-icon">···</span>
+            <h3>Loading draft…</h3>
+          </div>
+        ) : denial ? (
           <div className="denial-panel">
             <div className="denial-header">
               <span className="denial-stop">STOP — Not Covered</span>
@@ -454,13 +563,50 @@ export function ClaimIntake() {
             <div className="coverage">
               {coverageEmoji[result.coverageLabel]} {result.coverageLabel}
             </div>
-            <pre className="cdr-output">{result.copyText}</pre>
+
+            {laborRate > 0 && (
+              <div className="reimbursement-estimate">
+                <span>Estimated reimbursement</span>
+                <strong>{formatDollars(result.claimableTime * laborRate)}</strong>
+                <small>at {formatDollars(laborRate)}/hr approved rate · {result.claimableTime.toFixed(1)} hr claimable</small>
+              </div>
+            )}
+
+            <div className="cdr-sections">
+              <CdrSectionBlock
+                label="Key part number"
+                text={result.keyPartNumber || "(blank)"}
+                onCopy={(t) => void copyText(t, "Key part number")}
+              />
+              <CdrSectionBlock
+                label="Cause"
+                text={result.cause}
+                onCopy={(t) => void copyText(t, "Cause")}
+              />
+              <CdrSectionBlock
+                label="Diagnose"
+                text={formatStepsText(result.diagnose)}
+                onCopy={(t) => void copyText(t, "Diagnose")}
+              />
+              <CdrSectionBlock
+                label="Repair"
+                text={formatStepsText(result.repair)}
+                onCopy={(t) => void copyText(t, "Repair")}
+              />
+              <CdrSectionBlock
+                label="Clean up"
+                text={formatStepsText(result.cleanUp)}
+                onCopy={(t) => void copyText(t, "Clean up")}
+              />
+            </div>
+
             <div className="actions result-actions">
               <button className="button secondary" type="button" onClick={copyCdr}>
-                Copy CDR
+                Copy full CDR
               </button>
               {copyStatus ? <span className="status">{copyStatus}</span> : null}
             </div>
+
             <div className="metric-grid">
               <div className="metric">
                 <span>Workorder time requested</span>
@@ -475,6 +621,7 @@ export function ClaimIntake() {
                 <strong>{formatHours(result.timeDifference)}</strong>
               </div>
             </div>
+
             {result.warnings.length ? (
               <div className="warning">
                 <strong>Review before submission</strong>
@@ -485,12 +632,34 @@ export function ClaimIntake() {
                 </ul>
               </div>
             ) : null}
+
             <div className="sources">
               <strong>Source guardrails applied</strong>
-              <ul>
-                {result.sourceNotes.map((source) => (
-                  <li key={source}>{source}</li>
-                ))}
+              <ul className="source-note-list">
+                {result.sourceNotes.map((source) => {
+                  const vaultPath = extractVaultPath(source);
+                  if (!vaultPath) {
+                    return <li key={source}>{source}</li>;
+                  }
+                  const isOpen = expandedSources.has(vaultPath);
+                  return (
+                    <li key={source} className="source-note-item">
+                      <button
+                        type="button"
+                        className="source-note-toggle"
+                        onClick={() => void toggleSourceNote(vaultPath)}
+                      >
+                        <span>{isOpen ? "▾" : "▸"}</span>
+                        {source}
+                      </button>
+                      {isOpen && (
+                        <pre className="source-note-content">
+                          {sourceContent[vaultPath] ?? "Loading…"}
+                        </pre>
+                      )}
+                    </li>
+                  );
+                })}
               </ul>
             </div>
           </>
@@ -508,6 +677,43 @@ export function ClaimIntake() {
       </section>
     </div>
   );
+}
+
+function CdrSectionBlock({
+  label,
+  text,
+  onCopy,
+}: {
+  label: string;
+  text: string;
+  onCopy: (text: string) => void;
+}) {
+  return (
+    <div className="cdr-section-block">
+      <div className="cdr-section-header">
+        <span className="cdr-section-label">{label}</span>
+        <button type="button" className="cdr-copy-btn" onClick={() => onCopy(text)}>
+          Copy
+        </button>
+      </div>
+      <pre className="cdr-section-text">{text}</pre>
+    </div>
+  );
+}
+
+function formatStepsText(steps: CdrStep[]): string {
+  if (!steps.length) return "(none)";
+  return steps
+    .map((step) => {
+      const time = step.timeHours === null ? "time needed" : `${step.timeHours.toFixed(1)} hr`;
+      return `- ${step.description}: ${time}`;
+    })
+    .join("\n");
+}
+
+function extractVaultPath(sourceNote: string): string | null {
+  const match = sourceNote.match(/vault\/[^\s]+\.md/);
+  return match ? match[0] : null;
 }
 
 function toRecordSummary(record: {
@@ -551,4 +757,8 @@ function formatHours(value: number | null) {
   }
 
   return `${value.toFixed(1)} hr`;
+}
+
+function formatDollars(value: number) {
+  return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(value);
 }

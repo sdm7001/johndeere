@@ -2,7 +2,7 @@ import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
-import { claimStatuses, listClaimRecords, updateClaimStatus } from "@/lib/claim-records";
+import { claimStatuses, listClaimRecords, updateClaimStatus, type ClaimStatus } from "@/lib/claim-records";
 import { appConfig } from "@/lib/config";
 
 const statusUpdateSchema = z.object({
@@ -10,7 +10,7 @@ const statusUpdateSchema = z.object({
   status: z.enum(claimStatuses),
 });
 
-export async function GET() {
+export async function GET(request: Request) {
   if (appConfig.clerkIsConfigured) {
     const { userId } = await auth();
     if (!userId) {
@@ -18,7 +18,15 @@ export async function GET() {
     }
   }
 
-  const records = await listClaimRecords(25);
+  const { searchParams } = new URL(request.url);
+  const statusParam = searchParams.get("status");
+  const hasWarningsParam = searchParams.get("hasWarnings");
+
+  const records = await listClaimRecords({
+    status: (claimStatuses as readonly string[]).includes(statusParam ?? "") ? (statusParam as ClaimStatus) : undefined,
+    hasWarnings: hasWarningsParam === "true" ? true : hasWarningsParam === "false" ? false : undefined,
+    limit: 50,
+  });
   return NextResponse.json({ records });
 }
 

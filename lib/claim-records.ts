@@ -55,8 +55,15 @@ export async function saveClaimRecord(input: ClaimInput, result: CdrResult, crea
   return record;
 }
 
-export async function listClaimRecords(limit = 25): Promise<ClaimRecordSummary[]> {
-  const postgresRecords = await listPostgresRecords(limit);
+export type ClaimRecordFilters = {
+  status?: ClaimStatus;
+  hasWarnings?: boolean;
+  limit?: number;
+};
+
+export async function listClaimRecords(filters: ClaimRecordFilters = {}): Promise<ClaimRecordSummary[]> {
+  const { limit = 25 } = filters;
+  const postgresRecords = await listPostgresRecords(filters);
   if (postgresRecords) {
     return postgresRecords;
   }
@@ -65,9 +72,37 @@ export async function listClaimRecords(limit = 25): Promise<ClaimRecordSummary[]
 
   const filenames = await readdir(recordsDirectory);
   const recordFilenames = filenames.filter((filename) => filename.endsWith(".json")).sort().reverse();
-  const records = await Promise.all(recordFilenames.slice(0, limit).map(readRecordSummary));
+  let records = (await Promise.all(recordFilenames.slice(0, 200).map(readRecordSummary))).filter(
+    (record): record is ClaimRecordSummary => Boolean(record),
+  );
 
-  return records.filter((record): record is ClaimRecordSummary => Boolean(record));
+  if (filters.status) {
+    records = records.filter((r) => r.status === filters.status);
+  }
+  if (filters.hasWarnings !== undefined) {
+    records = records.filter((r) => (r.warningsCount > 0) === filters.hasWarnings);
+  }
+
+  return records.slice(0, limit);
+}
+
+export async function getClaimRecord(id: string): Promise<ClaimRecord | null> {
+  // Validate id format to prevent path traversal
+  if (!/^[\w-]+$/.test(id)) {
+    return null;
+  }
+
+  const postgresRecord = await getPostgresRecord(id);
+  if (postgresRecord !== undefined) {
+    return postgresRecord;
+  }
+
+  try {
+    const raw = await readFile(getRecordPath(id), "utf8");
+    return JSON.parse(raw) as ClaimRecord;
+  } catch {
+    return null;
+  }
 }
 
 export type DashboardMetrics = {
@@ -212,7 +247,36 @@ async function savePostgresRecord(record: ClaimRecord) {
   return true;
 }
 
-async function listPostgresRecords(limit: number) {
+async function getPostgresRecord(id: string): Promise<ClaimRecord | null | undefined> {
+  if (!(await ensureSchema())) {
+    return undefined;
+  }
+
+  const db = getPool();
+  if (!db) {
+    return undefined;
+  }
+
+  const { rows } = await db.query(
+    `select id, created_at, updated_at, created_by, status, input, result from claim_records where id = $1`,
+    [id],
+  );
+
+  const row = rows[0];
+  if (!row) return null;
+
+  return {
+    id: row.id,
+    createdAt: new Date(row.created_at).toISOString(),
+    updatedAt: new Date(row.updated_at).toISOString(),
+    createdBy: row.created_by,
+    status: row.status,
+    input: row.input as ClaimRecord["input"],
+    result: row.result as ClaimRecord["result"],
+  };
+}
+
+async function listPostgresRecords(filters: ClaimRecordFilters) {
   if (!(await ensureSchema())) {
     return null;
   }
@@ -221,6 +285,21 @@ async function listPostgresRecords(limit: number) {
   if (!db) {
     return null;
   }
+
+  const conditions: string[] = [];
+  const values: unknown[] = [];
+
+  if (filters.status) {
+    values.push(filters.status);
+    conditions.push(`status = $${values.length}`);
+  }
+  if (filters.hasWarnings !== undefined) {
+    conditions.push(filters.hasWarnings ? "warnings_count > 0" : "warnings_count = 0");
+  }
+
+  const where = conditions.length ? `where ${conditions.join(" and ")}` : "";
+  values.push(filters.limit ?? 25);
+  const limitParam = `$${values.length}`;
 
   const { rows } = await db.query(
     `
@@ -236,10 +315,11 @@ async function listPostgresRecords(limit: number) {
       claimable_time,
       warnings_count
     from claim_records
+    ${where}
     order by created_at desc
-    limit $1
+    limit ${limitParam}
     `,
-    [limit],
+    values,
   );
 
   return rows.map((row) => ({

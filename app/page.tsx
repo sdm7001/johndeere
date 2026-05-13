@@ -59,8 +59,8 @@ export default async function HomePage() {
                 before submission.
               </p>
             </section>
-            <ManagerDashboard metrics={dashboardMetrics} />
-            <ClaimIntake />
+            <ManagerDashboard metrics={dashboardMetrics} laborRate={appConfig.warrantyLaborRate} />
+            <ClaimIntake laborRate={appConfig.warrantyLaborRate} />
           </>
         )}
       </main>
