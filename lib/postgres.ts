@@ -63,6 +63,31 @@ export async function ensureSchema() {
       alter table claim_records add column if not exists warranty_plan text;
       alter table claim_records add column if not exists repair_date text;
 
+      create table if not exists mst_entries (
+        id text primary key,
+        job_code text not null default '',
+        description text not null,
+        product_family text not null default '',
+        model_range text not null default '',
+        allowed_hours numeric not null,
+        source_reference text not null default '',
+        effective_date text not null default '',
+        created_at timestamptz not null default now(),
+        updated_at timestamptz not null default now()
+      );
+
+      create table if not exists operation_codes (
+        id text primary key,
+        code text not null,
+        description text not null,
+        product_family text not null default '',
+        model_range text not null default '',
+        source_reference text not null default '',
+        effective_date text not null default '',
+        created_at timestamptz not null default now(),
+        updated_at timestamptz not null default now()
+      );
+
       create table if not exists warranty_sources (
         id text primary key,
         source_type text not null,

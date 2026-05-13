@@ -144,18 +144,6 @@ export function ManagerDashboard({ metrics, laborRate = 0 }: Props) {
           </ul>
         </div>
 
-        <div className="dashboard-panel next-actions">
-          <div className="dashboard-panel-header">
-            <span className="section-kicker">Next business moves</span>
-            <h3>Best steps after MVP testing</h3>
-          </div>
-          <ol>
-            <li>Add dollar-value reimbursement reporting from saved claim history.</li>
-            <li>Attach official MST and operation-code source files.</li>
-            <li>Turn Obsidian source citations into clickable in-app references.</li>
-            <li>Add manager filters by approval state, user, warning count, and date.</li>
-          </ol>
-        </div>
       </div>
     </section>
   );

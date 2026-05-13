@@ -21,6 +21,7 @@ export default async function HomePage() {
         </div>
         {appConfig.clerkIsConfigured && user ? (
           <div className="topbar-actions">
+            <a href="/admin" className="admin-nav-link">Warranty data admin</a>
             <SignOutButton redirectUrl="/sign-in">
               <button className="logout-button" type="button">
                 Log out
