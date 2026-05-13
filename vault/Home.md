@@ -15,6 +15,7 @@ This vault is the planning brain for a new John Deere-focused web application ho
 
 - [[10-product/Product Brief|Product Brief]]
 - [[10-product/Warranty Processing SOP|Warranty Processing SOP]]
+- [[10-product/Warranty Claim Narrative Standard|Warranty Claim Narrative Standard]]
 - [[20-architecture/System Architecture|System Architecture]]
 - [[20-architecture/Obsidian Data Brain|Obsidian Data Brain]]
 - [[30-operations/DigitalOcean Deployment Runbook|DigitalOcean Deployment Runbook]]

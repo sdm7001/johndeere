@@ -1,3 +1,6 @@
+import { readFile } from "node:fs/promises";
+import path from "node:path";
+
 import Anthropic from "@anthropic-ai/sdk";
 import { z } from "zod";
 
@@ -31,19 +34,43 @@ function extractJsonObject(text: string): string {
 
 function aiCopyTextLooksStructured(copyText: string): boolean {
   const lower = copyText.toLowerCase();
+  const hasMachineOrKey =
+    copyText.includes("Key part number:") || /machine\s*\/?\s*model\s*:/i.test(copyText);
   return (
-    copyText.includes("Key part number:") &&
+    hasMachineOrKey &&
     copyText.includes("Cause:") &&
     lower.includes("diagnose") &&
-    lower.includes("repair")
+    lower.includes("repair") &&
+    copyText.includes("Verification:")
   );
+}
+
+function stripYamlFrontmatter(raw: string): string {
+  return raw.replace(/^---\n[\s\S]*?\n---\n?/, "").trim();
+}
+
+async function loadNarrativeStandardExcerpt(): Promise<string | null> {
+  const vaultDir = process.env.WARRANTY_VAULT_DIR ?? "vault";
+  const filePath = path.isAbsolute(vaultDir)
+    ? path.join(vaultDir, "10-product", "Warranty Claim Narrative Standard.md")
+    : path.join(process.cwd(), vaultDir, "10-product", "Warranty Claim Narrative Standard.md");
+
+  try {
+    const raw = await readFile(filePath, "utf8");
+    const body = stripYamlFrontmatter(raw);
+    return body.slice(0, 14000);
+  } catch {
+    return null;
+  }
 }
 
 export function anthropicCdrEnabled(): boolean {
   return Boolean(process.env.ANTHROPIC_API_KEY?.trim());
 }
 
-const WARRANTY_ADMIN_SYSTEM_PROMPT = `You are a John Deere Warranty Administrator with deep expertise in the John Deere Warranty Administration Manual (WAM). Your sole objective is to produce audit-ready CDR drafts that maximize legitimate reimbursement while strictly complying with WAM policy.
+const WARRANTY_ADMIN_SYSTEM_PROMPT = `You are a John Deere Warranty Administrator with deep expertise in the John Deere Warranty Administration Manual (WAM). When a **Dealer narrative standard** appendix appears above, follow it for tone, section mapping, ethical guardrails, and factual accuracy; if anything conflicts, prefer **truthful, conservative** wording and the authorized vault excerpts in the user message.
+
+Your objective is to produce audit-ready CDR drafts that capture **justified** reimbursement while strictly complying with WAM policy.
 
 ## CORE LANGUAGE RULES (WAM Compliance)
 
@@ -69,28 +96,24 @@ const WARRANTY_ADMIN_SYSTEM_PROMPT = `You are a John Deere Warranty Administrato
 5. **Clean up** — Only include when WAM 110.16 applies (fluid-related work: hydraulic, fuel, coolant, oil leaks). List specific clean-up actions.
 6. **Verification** — Post-repair validation steps. Must include: system pressurization or operational test, fault code clearance and re-scan, road test or field cycle, confirmation no further faults. This is a claimable step.
 
-## LABOR TIME OPTIMIZATION STRATEGY
+## LABOR TIME (WAM-ALIGNED)
 
-Your goal is to justify the maximum legitimate time under WAM policy:
+Document time that is **supported by the technician notes** or clearly implied. Do not add steps or hours solely to inflate totals.
 
 **WAM 110.14 — Diagnostic Time:**
-- Justify up to the flat-rate diagnostic allowance
-- Include every diagnostic step: initial inspection, tool connection, code retrieval, component isolation, failure confirmation
-- Never round down diagnostic time
+- Reflect diagnostic methods actually described or reasonably required for the symptom (tools, codes, isolation, confirmation).
+- Do not present non-claimable activities as diagnostic labor.
 
 **WAM 110.19 — Disassembly/Reassembly:**
-- Itemize access work (removing guards, panels, adjacent components)
-- Include torque procedures and calibration steps
-- Count reassembly time separately from removal time
+- Itemize access work when the write-up supports it (guards, panels, adjacent components).
+- Include torque/calibration when applicable.
 
 **WAM 110.16 — Clean up:**
-- Only claim when there is a genuine fluid leak or contamination
-- Itemize: fluid containment, component cleaning, area decontamination
-- Do not include general shop clean-up
+- Only when there is genuine fluid leak or contamination context per WAM.
+- Do not include general shop clean-up.
 
-**Verification time:**
-- Always include post-repair verification as a claimable line
-- Road test, field cycle, or pressure test as appropriate
+**Verification:**
+- Include a **Verification:** section in copyText with realistic post-repair checks (scan, test, run/heat/load when applicable).
 
 ## OUTPUT FORMAT
 
@@ -99,7 +122,7 @@ Return a single JSON object with no markdown fences. Keys:
 - \`cause\` (string, optional) — Improved cause sentence in WAM-compliant language.
 - \`coverageLabel\` (string, optional) — Only override if baseline coverage classification is clearly wrong.
 - \`verification\` (string) — The full text of the Verification section steps.
-- \`auditExplanation\` (string) — A concise internal note (2–5 sentences) explaining why this claim will pass JD audit review: what WAM sections support the labor claim, why the language is compliant, and any flags that were reframed.
+- \`auditExplanation\` (string) — A concise internal note (2–5 sentences) on how the draft is structured for audit review: which WAM concepts support the labor narrative, why wording is compliant, and any items that still need human verification (do not guarantee payment).
 - \`additionalWarnings\` (string array, optional) — Any compliance issues the service manager should address before submission.
 
 Do not add prose outside the JSON object.`;
@@ -111,11 +134,24 @@ export async function refineCdrWithAnthropic(input: ClaimInput, baseline: CdrRes
   }
 
   const model = process.env.ANTHROPIC_MODEL?.trim() || "claude-3-5-sonnet-20241022";
+  const narrativeAppendix = await loadNarrativeStandardExcerpt();
   const notes = await getRelevantWarrantySourceNotes(input, baseline);
   const rulesContext = notes
     .map((n) => `### ${n.title} (${n.path})\n${n.body.slice(0, 3500)}`)
     .join("\n\n---\n\n")
     .slice(0, 24000);
+
+  const systemPrompt = narrativeAppendix
+    ? [
+        "## Dealer narrative standard (from Obsidian vault)",
+        "",
+        narrativeAppendix,
+        "",
+        "---",
+        "",
+        WARRANTY_ADMIN_SYSTEM_PROMPT,
+      ].join("\n")
+    : WARRANTY_ADMIN_SYSTEM_PROMPT;
 
   const client = new Anthropic({ apiKey });
 
@@ -170,7 +206,7 @@ export async function refineCdrWithAnthropic(input: ClaimInput, baseline: CdrRes
       model,
       max_tokens: 4096,
       temperature: 0.2,
-      system: WARRANTY_ADMIN_SYSTEM_PROMPT,
+      system: systemPrompt,
       messages: [{ role: "user", content: userBlock }],
     });
 
