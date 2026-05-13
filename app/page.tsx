@@ -4,11 +4,13 @@ import { currentUser } from "@clerk/nextjs/server";
 import { ClaimIntake } from "@/components/claim-intake";
 import { ManagerDashboard } from "@/components/manager-dashboard";
 import { appConfig } from "@/lib/config";
+import { getDashboardMetrics } from "@/lib/claim-records";
 
 export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
   const user = appConfig.clerkIsConfigured ? await currentUser() : null;
+  const dashboardMetrics = await getDashboardMetrics().catch(() => null);
 
   return (
     <div className="page-shell">
@@ -57,7 +59,7 @@ export default async function HomePage() {
                 before submission.
               </p>
             </section>
-            <ManagerDashboard />
+            <ManagerDashboard metrics={dashboardMetrics} />
             <ClaimIntake />
           </>
         )}

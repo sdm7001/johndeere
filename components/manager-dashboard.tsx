@@ -1,29 +1,4 @@
-const metricCards = [
-  {
-    label: "Draft queue",
-    value: "Saved",
-    detail: "Generated drafts are retained in PostgreSQL-backed history.",
-    tone: "green",
-  },
-  {
-    label: "Reimbursement exposure",
-    value: "Tracked next",
-    detail: "Claimable hours are saved now; dollar reporting comes next.",
-    tone: "yellow",
-  },
-  {
-    label: "Labor variance",
-    value: "Checked live",
-    detail: "Each generated draft compares requested time to claimable time.",
-    tone: "green",
-  },
-  {
-    label: "Audit readiness",
-    value: "Guarded",
-    detail: "WAM/CDR rules and source notes are registered in the vault.",
-    tone: "green",
-  },
-];
+import type { DashboardMetrics } from "@/lib/claim-records";
 
 const watchlist = [
   {
@@ -50,7 +25,59 @@ const sourceStatus = [
   "Production Clerk certificates pending; development Clerk active for testing",
 ];
 
-export function ManagerDashboard() {
+type Props = {
+  metrics: DashboardMetrics | null;
+};
+
+function fmt(n: number | undefined | null): string {
+  if (n === null || n === undefined) return "—";
+  return String(n);
+}
+
+function fmtHours(n: number | undefined | null): string {
+  if (n === null || n === undefined) return "—";
+  return `${n.toFixed(1)} hr`;
+}
+
+export function ManagerDashboard({ metrics }: Props) {
+  const metricCards = [
+    {
+      label: "Draft queue",
+      value: metrics ? fmt(metrics.draftCount + metrics.needsClarificationCount) : "—",
+      detail: metrics
+        ? `${fmt(metrics.draftCount)} draft · ${fmt(metrics.needsClarificationCount)} need clarification · ${fmt(metrics.approvedCount)} approved · ${fmt(metrics.copiedCount)} copied`
+        : "Connecting to database…",
+      tone: "green",
+    },
+    {
+      label: "Total claimable hours",
+      value: metrics ? fmtHours(metrics.totalClaimableHours) : "—",
+      detail: metrics
+        ? `Across ${fmt(metrics.totalClaims)} saved claim${metrics.totalClaims === 1 ? "" : "s"}`
+        : "Connecting to database…",
+      tone: "green",
+    },
+    {
+      label: "Labor variance",
+      value: metrics ? fmt(metrics.laborVarianceCount) : "—",
+      detail:
+        metrics && metrics.laborVarianceCount > 0
+          ? `${fmt(metrics.laborVarianceCount)} claim${metrics.laborVarianceCount === 1 ? "" : "s"} where requested time doesn't match claimable CDR labor`
+          : metrics
+            ? "All saved claims reconcile requested vs. claimable time"
+            : "Connecting to database…",
+      tone: metrics && metrics.laborVarianceCount > 0 ? "yellow" : "green",
+    },
+    {
+      label: "Audit flags",
+      value: metrics ? fmt(metrics.missingKeyPartCount + metrics.claimsWithWarningsCount) : "—",
+      detail: metrics
+        ? `${fmt(metrics.missingKeyPartCount)} missing key part · ${fmt(metrics.claimsWithWarningsCount)} with active warnings`
+        : "Connecting to database…",
+      tone: metrics && metrics.missingKeyPartCount + metrics.claimsWithWarningsCount > 0 ? "yellow" : "green",
+    },
+  ];
+
   return (
     <section className="manager-dashboard" aria-labelledby="manager-dashboard-title">
       <div className="dashboard-hero card">
@@ -58,8 +85,7 @@ export function ManagerDashboard() {
           <span className="section-kicker">Manager dashboard</span>
           <h2 id="manager-dashboard-title">Warranty desk command center</h2>
           <p>
-            A business snapshot for monitoring claim quality, reimbursement risk, source readiness, and
-            what needs attention before this MVP becomes a production workflow.
+            Live claim queue, labor variance, and audit flags pulled from the database on every page load.
           </p>
         </div>
         <div className="dashboard-mode">

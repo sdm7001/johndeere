@@ -70,6 +70,61 @@ export async function listClaimRecords(limit = 25): Promise<ClaimRecordSummary[]
   return records.filter((record): record is ClaimRecordSummary => Boolean(record));
 }
 
+export type DashboardMetrics = {
+  totalClaims: number;
+  draftCount: number;
+  needsClarificationCount: number;
+  approvedCount: number;
+  copiedCount: number;
+  totalClaimableHours: number;
+  missingKeyPartCount: number;
+  claimsWithWarningsCount: number;
+  laborVarianceCount: number;
+};
+
+export async function getDashboardMetrics(): Promise<DashboardMetrics | null> {
+  if (!(await ensureSchema())) {
+    return null;
+  }
+
+  const db = getPool();
+  if (!db) {
+    return null;
+  }
+
+  const { rows } = await db.query(`
+    select
+      count(*)                                                                             as total_claims,
+      count(*) filter (where status = 'draft')                                            as draft_count,
+      count(*) filter (where status = 'needs_clarification')                              as needs_clarification_count,
+      count(*) filter (where status = 'approved')                                         as approved_count,
+      count(*) filter (where status = 'copied')                                           as copied_count,
+      coalesce(sum(claimable_time), 0)                                                    as total_claimable_hours,
+      count(*) filter (where key_part_number = '')                                        as missing_key_part_count,
+      count(*) filter (where warnings_count > 0)                                          as claims_with_warnings_count,
+      count(*) filter (
+        where workorder_time ~ '^[0-9]+(\\.[0-9]+)?$'
+          and abs(cast(workorder_time as numeric) - claimable_time) > 0.05
+      )                                                                                    as labor_variance_count
+    from claim_records
+  `);
+
+  const row = rows[0];
+  if (!row) return null;
+
+  return {
+    totalClaims: Number(row.total_claims),
+    draftCount: Number(row.draft_count),
+    needsClarificationCount: Number(row.needs_clarification_count),
+    approvedCount: Number(row.approved_count),
+    copiedCount: Number(row.copied_count),
+    totalClaimableHours: Number(row.total_claimable_hours),
+    missingKeyPartCount: Number(row.missing_key_part_count),
+    claimsWithWarningsCount: Number(row.claims_with_warnings_count),
+    laborVarianceCount: Number(row.labor_variance_count),
+  };
+}
+
 export async function updateClaimStatus(id: string, status: ClaimStatus) {
   if (!claimStatuses.includes(status)) {
     throw new Error("Invalid claim status.");
