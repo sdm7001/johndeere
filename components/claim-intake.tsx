@@ -20,6 +20,8 @@ type CdrResult = {
   diagnose: CdrStep[];
   repair: CdrStep[];
   cleanUp: CdrStep[];
+  verification: string;
+  auditExplanation: string;
   workorderTimeRequested: number | null;
   claimableTime: number;
   timeDifference: number | null;
